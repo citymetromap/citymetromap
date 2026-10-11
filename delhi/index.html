@@ -25,10 +25,12 @@ header{
 }
 .header-inner{width:min(1120px,calc(100% - 28px));margin:auto;display:flex;align-items:center;justify-content:space-between}
 .brand{display:flex;align-items:center;gap:10px}
+.brand-copy{display:flex;flex-direction:column;gap:2px}
+.brand-tagline{font-size:11px;color:var(--muted);line-height:1.2}
 .mark{width:34px;height:34px;border-radius:10px;background:#1d1d1d;color:#fff;display:grid;place-items:center;font-weight:800}
 .brand strong{font-size:19px;letter-spacing:-.4px}
 .city-pill{border:1px solid var(--line);padding:8px 12px;border-radius:9px;font-size:13px;color:#475467;background:#fff}
-main{width:min(1040px,calc(100% - 28px));margin:auto;padding:34px 0 70px}
+main{width:min(1120px,calc(100% - 28px));margin:auto;padding:34px 0 70px}
 .view{display:none}.view.active{display:block}
 .hero{padding:18px 0 28px}
 .eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--blue);font-size:11px;font-weight:800}
@@ -70,7 +72,7 @@ h3{font-size:17px;margin:0}
 .badge{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:5px 8px;background:#eef2f7;color:#475467;margin-bottom:10px}
 .project .meta{color:var(--muted);font-size:13px;margin-top:7px}
 .empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed #d9dee7;border-radius:12px}
-footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98a2b3;font-size:11px}
+footer{border-top:1px solid var(--line);padding:20px max(14px,calc((100% - 1120px)/2));text-align:left;color:#98a2b3;font-size:11px}
 @media(max-width:760px){
   header{height:64px}.grid{grid-template-columns:1fr 1fr}
   .statbar{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid var(--line)}.stat:last-child{border-bottom:0}
@@ -85,7 +87,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
 <div class="app">
 <header>
   <div class="header-inner">
-    <div class="brand"><div class="mark">M</div><strong>MetroGuide</strong></div>
+    <div class="brand"><div class="mark">M</div><div class="brand-copy"><strong>MetroGuide</strong><span class="brand-tagline">Find. Route. Travel.</span></div></div>
     <button class="city-pill" onclick="location.href='../index.html'">Delhi NCR ▾</button>
   </div>
 </header>
@@ -93,39 +95,32 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
 <main>
   <section id="home" class="view active">
     <div class="hero">
-      <div class="eyebrow">Delhi NCR</div>
-      <h1>Find. Route. Travel.</h1>
-      <p class="sub">Delhi Metro, NCR metro networks and upcoming corridors.</p>
+      <h1>Find Route</h1>
+      <p class="sub">Plan a journey between Delhi NCR Metro stations.</p>
     </div>
 
-    <div class="search">
-      <span>⌕</span>
-      <input id="searchBox" placeholder="Search station, line or project…" oninput="searchAll()">
-    </div>
-
-    <div id="searchResults"></div>
-
-    <div class="section">
-      <div class="section-head"><h2>Delhi Metro</h2><small>Operational network</small></div>
-      <div class="statbar">
-        <div class="stat"><b>10</b><span>Operational lines</span></div>
-        <div class="stat"><b>257</b><span>DMRC stations</span></div>
-        <div class="stat"><b>352.236 km</b><span>DMRC network</span></div>
+    <div class="section" style="margin-top:8px">
+      <div class="card" style="cursor:default">
+        <div class="info-grid" style="margin-top:16px">
+          <div><label for="routeFrom">FROM</label><input id="routeFrom" list="stationOptions" placeholder="Enter starting station" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff"></div>
+          <div><label for="routeTo">TO</label><input id="routeTo" list="stationOptions" placeholder="Enter destination station" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:9px;background:#fff"></div>
+        </div>
+        <datalist id="stationOptions"></datalist>
+        <button class="card" style="margin-top:12px;width:100%;text-align:center;background:var(--text);color:#fff;border-color:var(--text)" onclick="findRouteInline()">FIND ROUTE</button>
+        <div id="routeInlineResult" aria-live="polite"></div>
       </div>
     </div>
 
     <div class="section">
-      <div class="section-head"><h2>Explore</h2></div>
+      <div class="section-head"><h2>Explore</h2><small>Choose a service</small></div>
       <div class="grid">
-        <button class="card" onclick="showView('network')"><div class="top"><b>Metro Network</b><span class="arrow">›</span></div><p>Lines, stations and network structure.</p></button>
+        <button class="card" onclick="showView('network')"><div class="top"><b>Delhi Metro Map</b><span class="arrow">›</span></div><p>Explore operational lines and network details.</p></button>
+        <button class="card" onclick="showView('fare')"><div class="top"><b>Ticket Fare</b><span class="arrow">›</span></div><p>Find fare information for your journey.</p></button>
+        <button class="card" onclick="showView('news')"><div class="top"><b>Latest News</b><span class="arrow">›</span></div><p>Metro updates and service announcements.</p></button>
+        <button class="card" onclick="showView('firstlast')"><div class="top"><b>First and Last Metro</b><span class="arrow">›</span></div><p>Check first and last train timings.</p></button>
         <button class="card" onclick="showView('upcoming')"><div class="top"><b>Upcoming Metro</b><span class="arrow">›</span></div><p>Phase IV corridors and future expansion.</p></button>
-        <button class="card" onclick="showView('route')"><div class="top"><b>Find Route</b><span class="arrow">›</span></div><p>Plan a journey between stations.</p></button>
+        <button class="card" onclick="showView('popular')"><div class="top"><b>Popular Lines</b><span class="arrow">›</span></div><p>View key network statistics and popular lines.</p></button>
       </div>
-    </div>
-
-    <div class="section">
-      <div class="section-head"><h2>Popular lines</h2><small>Tap for details</small></div>
-      <div class="grid" id="popularLines"></div>
     </div>
   </section>
 
@@ -145,6 +140,38 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
   <section id="line" class="view">
     <button class="back" onclick="showView('network')">‹ Back to Metro Network</button>
     <div id="lineDetail"></div>
+  </section>
+
+  <section id="popular" class="view">
+    <button class="back" onclick="showView('home')">‹ Back to Explore</button>
+    <div class="detail-head"><div class="eyebrow">Delhi Metro</div><h1>Popular Lines</h1><p class="sub">Operational network overview and line details.</p></div>
+    <div class="section">
+      <div class="section-head"><h2>Delhi Metro</h2><small>Operational network</small></div>
+      <div class="statbar">
+        <div class="stat"><b>10</b><span>Operational lines</span></div>
+        <div class="stat"><b>257</b><span>DMRC stations</span></div>
+        <div class="stat"><b>352.236 km</b><span>DMRC network</span></div>
+      </div>
+    </div>
+    <div class="section"><div class="section-head"><h2>Popular lines</h2><small>Tap for details</small></div><div class="grid" id="popularLines"></div></div>
+  </section>
+
+  <section id="fare" class="view">
+    <button class="back" onclick="showView('home')">‹ Back to Explore</button>
+    <div class="detail-head"><div class="eyebrow">Passenger Information</div><h1>Ticket Fare</h1><p class="sub">Fare information for Delhi Metro journeys.</p></div>
+    <div class="section"><div class="empty">Fare lookup can be connected here. Add source and destination stations to calculate the applicable fare.</div></div>
+  </section>
+
+  <section id="news" class="view">
+    <button class="back" onclick="showView('home')">‹ Back to Explore</button>
+    <div class="detail-head"><div class="eyebrow">Updates</div><h1>Latest News</h1><p class="sub">Delhi Metro service announcements and network updates.</p></div>
+    <div class="section"><div class="empty">Latest news and service notices will appear here when a verified news feed is connected.</div></div>
+  </section>
+
+  <section id="firstlast" class="view">
+    <button class="back" onclick="showView('home')">‹ Back to Explore</button>
+    <div class="detail-head"><div class="eyebrow">Train Timings</div><h1>First and Last Metro</h1><p class="sub">Check the first and last train from a station.</p></div>
+    <div class="section"><div class="empty">Station-wise first and last train timings can be added here using verified DMRC timetable data.</div></div>
   </section>
 
   <section id="upcoming" class="view">
@@ -255,15 +282,19 @@ function openProject(id){
 }
 renderProjects();
 
-function searchAll(){
- const q=document.getElementById('searchBox').value.trim().toLowerCase();
- const box=document.getElementById('searchResults');
- if(!q){box.innerHTML='';return;}
- const ls=lines.filter(l=>(l.name+' '+l.from+' '+l.to).toLowerCase().includes(q));
- const ps=projects.filter(p=>(p.title+' '+p.line+' '+p.desc).toLowerCase().includes(q));
- box.innerHTML=`<div class="section"><div class="section-head"><h2>Search results</h2><small>${ls.length+ps.length}</small></div>
- <div class="grid">${ls.map(lineCard).join('')}${ps.map(p=>`<button class="card" onclick="openProject('${p.id}')"><div class="top"><b>${p.title}</b><span class="arrow">›</span></div><p>${p.line}<br>${p.km} · ${p.stations} stations</p></button>`).join('')}</div>
- ${(!ls.length&&!ps.length)?'<div class="empty">No matching line or project found.</div>':''}</div>`;
+function populateStationOptions(){
+ const stations = [...new Set(lines.flatMap(l => [l.from, l.to]))].sort();
+ document.getElementById('stationOptions').innerHTML = stations.map(s => `<option value="${s.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"></option>`).join('');
+}
+function findRouteInline(){
+ const from=document.getElementById('routeFrom').value.trim();
+ const to=document.getElementById('routeTo').value.trim();
+ const result=document.getElementById('routeInlineResult');
+ if(!from || !to){result.innerHTML='<p class="sub" style="margin-top:12px">Please enter both your starting station and destination.</p>';return;}
+ if(from.toLowerCase()===to.toLowerCase()){result.innerHTML='<p class="sub" style="margin-top:12px">Choose two different stations to plan a journey.</p>';return;}
+ result.innerHTML='<p class="sub" style="margin-top:12px">Route planning is not connected yet. The station search is ready; a complete station/interchange dataset is needed to calculate the route.</p>';
+}
+populateStationOptions();
 }
 </script>
 </body>
