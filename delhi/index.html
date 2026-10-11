@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>MetroGuide Delhi NCR</title>
+<style>
+:root{
+  --text:#151922; --muted:#697386; --line:#e8ebf0; --soft:#f7f8fa;
+  --blue:#2457d6; --blue-soft:#eef3ff; --danger:#c0392b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:#fff}
+body{min-height:100dvh;-webkit-text-size-adjust:100%}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+header{
+  height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  position:sticky;top:0;background:rgba(255,255,255,.97);z-index:20
+}
+.header-inner{width:min(1120px,calc(100% - 28px));margin:auto;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:34px;height:34px;border-radius:10px;background:#1d1d1d;color:#fff;display:grid;place-items:center;font-weight:800}
+.brand strong{font-size:19px;letter-spacing:-.4px}
+.city-pill{border:1px solid var(--line);padding:8px 12px;border-radius:9px;font-size:13px;color:#475467;background:#fff}
+main{width:min(1040px,calc(100% - 28px));margin:auto;padding:34px 0 70px}
+.view{display:none}.view.active{display:block}
+.hero{padding:18px 0 28px}
+.eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--blue);font-size:11px;font-weight:800}
+h1{font-size:clamp(30px,6vw,48px);letter-spacing:-1.7px;line-height:1.08;margin:10px 0 8px}
+h2{font-size:22px;letter-spacing:-.5px;margin:0}
+h3{font-size:17px;margin:0}
+.sub{color:var(--muted);font-size:15px;margin:0}
+.search{position:relative;margin:20px 0 34px}
+.search input{width:100%;height:50px;border:1px solid #d9dee7;border-radius:11px;padding:0 16px 0 44px;outline:none}
+.search input:focus{border-color:#9eb5ef;box-shadow:0 0 0 4px var(--blue-soft)}
+.search span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#8a93a3}
+.section{margin-top:34px}
+.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px}
+.section-head small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{
+  border:1px solid var(--line);border-radius:12px;background:#fff;padding:18px;
+  text-align:left;transition:.15s
+}
+.card:hover{border-color:#c5ccd8;box-shadow:0 5px 18px rgba(20,30,50,.06);transform:translateY(-1px)}
+.card .top{display:flex;justify-content:space-between;gap:12px}
+.card .arrow{color:#98a2b3}
+.card p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+.line-swatch{height:4px;border-radius:4px;margin:0 0 15px}
+.statbar{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:20px}
+.stat{padding:16px;border-right:1px solid var(--line)}.stat:last-child{border-right:0}
+.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:2px;margin:18px 0}
+.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 12px;font-size:13px}
+.tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.back{border:0;background:none;padding:0;color:var(--blue);font-size:14px;margin-bottom:22px}
+.detail-head{border-bottom:1px solid var(--line);padding-bottom:22px}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+.info{background:var(--soft);border-radius:11px;padding:16px}.info label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.info b{font-size:15px}
+.station-list{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.station{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:14px}
+.station:last-child{border-bottom:0}
+.project{padding:18px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:5px 8px;background:#eef2f7;color:#475467;margin-bottom:10px}
+.project .meta{color:var(--muted);font-size:13px;margin-top:7px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed #d9dee7;border-radius:12px}
+footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98a2b3;font-size:11px}
+@media(max-width:760px){
+  header{height:64px}.grid{grid-template-columns:1fr 1fr}
+  .statbar{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid var(--line)}.stat:last-child{border-bottom:0}
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr}.info-grid{grid-template-columns:1fr}
+}
+</style>
+<link rel="manifest" href="../manifest.json">
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="header-inner">
+    <div class="brand"><div class="mark">M</div><strong>MetroGuide</strong></div>
+    <button class="city-pill" onclick="location.href='../index.html'">Delhi NCR ▾</button>
+  </div>
+</header>
+
+<main>
+  <section id="home" class="view active">
+    <div class="hero">
+      <div class="eyebrow">Delhi NCR</div>
+      <h1>Find. Route. Travel.</h1>
+      <p class="sub">Delhi Metro, NCR metro networks and upcoming corridors.</p>
+    </div>
+
+    <div class="search">
+      <span>⌕</span>
+      <input id="searchBox" placeholder="Search station, line or project…" oninput="searchAll()">
+    </div>
+
+    <div id="searchResults"></div>
+
+    <div class="section">
+      <div class="section-head"><h2>Delhi Metro</h2><small>Operational network</small></div>
+      <div class="statbar">
+        <div class="stat"><b>10</b><span>Operational lines</span></div>
+        <div class="stat"><b>257</b><span>DMRC stations</span></div>
+        <div class="stat"><b>352.236 km</b><span>DMRC network</span></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Explore</h2></div>
+      <div class="grid">
+        <button class="card" onclick="showView('network')"><div class="top"><b>Metro Network</b><span class="arrow">›</span></div><p>Lines, stations and network structure.</p></button>
+        <button class="card" onclick="showView('upcoming')"><div class="top"><b>Upcoming Metro</b><span class="arrow">›</span></div><p>Phase IV corridors and future expansion.</p></button>
+        <button class="card" onclick="showView('route')"><div class="top"><b>Find Route</b><span class="arrow">›</span></div><p>Plan a journey between stations.</p></button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head"><h2>Popular lines</h2><small>Tap for details</small></div>
+      <div class="grid" id="popularLines"></div>
+    </div>
+  </section>
+
+  <section id="network" class="view">
+    <button class="back" onclick="location.href='../index.html'">‹ Back to Delhi NCR</button>
+    <div class="detail-head"><div class="eyebrow">Delhi Metro</div><h1>Metro Network</h1><p class="sub">Current operational lines in Delhi NCR.</p></div>
+    <div class="section"><div class="grid" id="allLines"></div></div>
+    <div class="section">
+      <div class="section-head"><h2>Other NCR Metros</h2></div>
+      <div class="grid">
+        <button class="card"><div class="top"><b>Aqua Line</b><span class="arrow">›</span></div><p>Noida–Greater Noida · 21 stations</p></button>
+        <button class="card"><div class="top"><b>Rapid Metro</b><span class="arrow">›</span></div><p>Gurugram · 11 stations</p></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="line" class="view">
+    <button class="back" onclick="showView('network')">‹ Back to Metro Network</button>
+    <div id="lineDetail"></div>
+  </section>
+
+  <section id="upcoming" class="view">
+    <button class="back" onclick="location.href='../index.html'">‹ Back to Delhi NCR</button>
+    <div class="detail-head"><div class="eyebrow">Future Network</div><h1>Upcoming Metro</h1><p class="sub">Delhi Metro Phase IV corridors and expansion.</p></div>
+    <div class="tabs">
+      <button class="tab active" onclick="filterProjects('all',this)">All</button>
+      <button class="tab" onclick="filterProjects('priority',this)">Priority corridors</button>
+      <button class="tab" onclick="filterProjects('other',this)">Other Phase IV</button>
+    </div>
+    <div id="projects"></div>
+  </section>
+
+  <section id="project" class="view">
+    <button class="back" onclick="showView('upcoming')">‹ Back to Upcoming Metro</button>
+    <div id="projectDetail"></div>
+  </section>
+
+  <section id="route" class="view">
+    <button class="back" onclick="location.href='../index.html'">‹ Back to Delhi NCR</button>
+    <div class="detail-head"><div class="eyebrow">Journey Planner</div><h1>Find Route</h1><p class="sub">Route engine will be connected to the station network next.</p></div>
+    <div class="info-grid">
+      <div class="info"><label>FROM</label><b>Select station</b></div>
+      <div class="info"><label>TO</label><b>Select station</b></div>
+    </div>
+    <button class="card" style="margin-top:14px;width:100%;text-align:center;background:var(--text);color:#fff;border-color:var(--text)" onclick="alert('Route engine will be connected after the station dataset is added.')">FIND ROUTE</button>
+  </section>
+</main>
+<footer>MetroGuide · Find. Route. Travel.</footer>
+</div>
+
+<script>
+const lines=[
+ {id:1,name:"Red Line",from:"Rithala",to:"Shaheed Sthal",stations:29,km:"34.549",color:"#e33b32"},
+ {id:2,name:"Yellow Line",from:"Samaypur Badli",to:"Millennium City Centre Gurugram",stations:37,km:"49.019",color:"#e5c400"},
+ {id:3,name:"Blue Line",from:"Dwarka Sector 21",to:"Noida Electronic City",stations:50,km:"56.114",color:"#1769d2"},
+ {id:4,name:"Blue Line — Vaishali Branch",from:"Yamuna Bank",to:"Vaishali",stations:8,km:"8.511",color:"#1769d2"},
+ {id:5,name:"Green Line",from:"Kirti Nagar / Inderlok",to:"Brig. Hoshiar Singh",stations:24,km:"28.781",color:"#1c9b59"},
+ {id:6,name:"Violet Line",from:"Kashmere Gate",to:"Raja Nahar Singh",stations:34,km:"46.341",color:"#7a3fb0"},
+ {id:7,name:"Pink Line",from:"Majlis Park",to:"Shiv Vihar",stations:38,km:"59.242",color:"#e85a91"},
+ {id:8,name:"Magenta Line",from:"Krishna Park Extn. / Janakpuri West",to:"Botanical Garden",stations:26,km:"39.271",color:"#a447b9"},
+ {id:9,name:"Grey Line",from:"Dwarka",to:"Dhansa Bus Stand",stations:4,km:"5.491",color:"#777b83"},
+ {id:10,name:"Airport Express",from:"New Delhi",to:"Yashobhoomi Dwarka Sector 25",stations:7,km:"24.917",color:"#ef7f27"}
+];
+
+const projects=[
+ {id:"golden",title:"Delhi Aerocity – Tughlakabad",line:"Line 10 · Golden Line",status:"Priority corridor",km:"23.622 km",stations:15,desc:"New corridor connecting Delhi Aerocity with Tughlakabad through the southern part of Delhi.",st:["Delhi Aerocity","Mahipalpur","Vasant Kunj","Kishangarh Metro Station","Chhatarpur","Chhatarpur Mandir","IGNOU","Neb Sarai","Saket G Block","Ambedkar Nagar","Khanpur","Sangam Vihar – Tigri","Anandmayee Marg Jn","Tughlakabad Rly Colony","Tughlakabad Station"]},
+ {id:"magenta4",title:"Janakpuri West – Ramakrishna Ashram Marg",line:"Line 8 · Magenta Line Extension",status:"Priority corridor",km:"27.452 km",stations:21,desc:"Extension of the Magenta Line toward central Delhi.",st:["Keshopur","Paschim Vihar","Peeragarhi","Mangol Puri","West Enclave","Pushpanjali","Deepali Chowk","Pitampura","Prashant Vihar","North Pitampura","Haiderpur Badli Mor","Bhalaswa","Majlis Park","Azadpur","Ashok Vihar","Derawal Nagar","Ghanta Ghar","Pulbangash","Sadar Bazar","Nabi Karim","Ramakrishna Ashram Marg"]},
+ {id:"pink4",title:"Majlis Park – Maujpur",line:"Line 7 · Pink Line Extension",status:"Priority corridor",km:"12.318 km",stations:8,desc:"Extension completing the Pink Line corridor across north and northeast Delhi.",st:["Majlis Park","Bhalswa","Haiderpur Badli Mor","North Pitampura / Prashant Vihar","Madhuban Chowk","Deepali Chowk","Pitampura","Maujpur"]},
+ {id:"indraprastha",title:"Inderlok – Indraprastha",line:"Phase IV",status:"Other Phase IV corridor",km:"12.377 km",stations:10,desc:"Planned Phase IV corridor linking Inderlok and Indraprastha.",st:[]},
+ {id:"saket",title:"Lajpat Nagar – Saket G Block",line:"Phase IV",status:"Other Phase IV corridor",km:"8.385 km",stations:8,desc:"Planned corridor connecting Lajpat Nagar with Saket G Block.",st:[]},
+ {id:"narela",title:"Rithala – Narela – Nathupur (Kundli)",line:"Phase IV",status:"Other Phase IV corridor",km:"26.463 km",stations:21,desc:"Planned northern extension toward Narela and Nathupur/Kundli.",st:[]}
+];
+
+function showView(id){
+ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function lineCard(l){
+ return `<button class="card" onclick="openLine(${l.id})">
+   <div class="line-swatch" style="background:${l.color}"></div>
+   <div class="top"><b>${l.name}</b><span class="arrow">›</span></div>
+   <p>${l.from} → ${l.to}<br>${l.stations} stations · ${l.km} km</p>
+ </button>`;
+}
+document.getElementById('popularLines').innerHTML=lines.slice(0,6).map(lineCard).join('');
+document.getElementById('allLines').innerHTML=lines.map(lineCard).join('');
+
+function openLine(id){
+ const l=lines.find(x=>x.id===id);
+ document.getElementById('lineDetail').innerHTML=`
+  <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
+  <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
+  <div class="info-grid">
+   <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
+   <div class="info"><label>LENGTH</label><b>${l.km} km</b></div>
+  </div>
+  <div class="section"><div class="section-head"><h2>Station list</h2><small>Dataset next</small></div>
+   <div class="empty">The complete station-by-station data will be connected here. This page structure is ready.</div>
+  </div>`;
+ showView('line');
+}
+function renderProjects(filter='all'){
+ let arr=projects;
+ if(filter==='priority') arr=projects.filter(p=>p.status==='Priority corridor');
+ if(filter==='other') arr=projects.filter(p=>p.status!=='Priority corridor');
+ document.getElementById('projects').innerHTML=arr.map(p=>`
+  <button class="project card" onclick="openProject('${p.id}')">
+   <span class="badge">${p.status}</span>
+   <div class="top"><h3>${p.title}</h3><span class="arrow">›</span></div>
+   <div class="meta">${p.line} · ${p.km} · ${p.stations} stations</div>
+   <p>${p.desc}</p>
+  </button>`).join('');
+}
+function filterProjects(f,el){
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderProjects(f);
+}
+function openProject(id){
+ const p=projects.find(x=>x.id===id);
+ const stationBlock=p.st.length?`<div class="section"><div class="section-head"><h2>Proposed stations</h2><small>${p.st.length} listed</small></div><div class="station-list">${p.st.map((s,i)=>`<div class="station"><span>${i+1}. ${s}</span><span>›</span></div>`).join('')}</div></div>`:'';
+ document.getElementById('projectDetail').innerHTML=`
+  <div class="detail-head"><span class="badge">${p.status}</span><div class="eyebrow">${p.line}</div><h1>${p.title}</h1><p class="sub">${p.desc}</p></div>
+  <div class="info-grid"><div class="info"><label>LENGTH</label><b>${p.km}</b></div><div class="info"><label>STATIONS</label><b>${p.stations}</b></div></div>
+  ${stationBlock}
+  <div class="section"><div class="section-head"><h2>Project information</h2></div><div class="empty">Progress, expected opening and live construction updates can be added here from verified official updates.</div></div>`;
+ showView('project');
+}
+renderProjects();
+
+function searchAll(){
+ const q=document.getElementById('searchBox').value.trim().toLowerCase();
+ const box=document.getElementById('searchResults');
+ if(!q){box.innerHTML='';return;}
+ const ls=lines.filter(l=>(l.name+' '+l.from+' '+l.to).toLowerCase().includes(q));
+ const ps=projects.filter(p=>(p.title+' '+p.line+' '+p.desc).toLowerCase().includes(q));
+ box.innerHTML=`<div class="section"><div class="section-head"><h2>Search results</h2><small>${ls.length+ps.length}</small></div>
+ <div class="grid">${ls.map(lineCard).join('')}${ps.map(p=>`<button class="card" onclick="openProject('${p.id}')"><div class="top"><b>${p.title}</b><span class="arrow">›</span></div><p>${p.line}<br>${p.km} · ${p.stations} stations</p></button>`).join('')}</div>
+ ${(!ls.length&&!ps.length)?'<div class="empty">No matching line or project found.</div>':''}</div>`;
+}
+</script>
+</body>
+</html>

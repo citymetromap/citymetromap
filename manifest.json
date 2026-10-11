@@ -1,0 +1,9 @@
+{
+  "name": "MetroGuide \u2014 Find. Route. Travel.",
+  "short_name": "MetroGuide",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff"
+}
