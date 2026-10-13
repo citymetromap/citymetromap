@@ -271,9 +271,14 @@ function searchAll(){
 function normStation(v){return (v||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 async function stationHints(q){
- const qn=normStation(q);
- const {data,error}=await metroDb.from("stations").select("id,name,normalized_name").ilike("normalized_name",`%${qn}%`).order("name").limit(10);
- if(error)throw error;return data||[];
+ const qn=normStation(q), compact=qn.replace(/\\s+/g,"");
+ // Match both spaced and unspaced spellings (e.g. "Janakpuri West" and "Janak Puri West").
+ const {data,error}=await metroDb.from("stations").select("id,name,normalized_name").order("name").limit(1000);
+ if(error)throw error;
+ return (data||[]).filter(x=>{
+   const nameNorm=normStation(x.name), stored=normStation(x.normalized_name||"");
+   return nameNorm.includes(qn)||stored.includes(qn)||nameNorm.replace(/\\s+/g,"").includes(compact)||stored.replace(/\\s+/g,"").includes(compact);
+ }).slice(0,10);
 }
 function attachHints(inputId,boxId){
  const input=document.getElementById(inputId),box=document.getElementById(boxId);let timer;
@@ -291,11 +296,15 @@ function attachHints(inputId,boxId){
 }
 async function resolveStation(input){
  if(input.dataset.stationId){return {id:input.dataset.stationId,name:input.value};}
- const n=normStation(input.value);
- const {data,error}=await metroDb.from("stations").select("id,name,normalized_name").ilike("normalized_name",n).limit(5);
+ const n=normStation(input.value), compact=n.replace(/\\s+/g,"");
+ const {data,error}=await metroDb.from("stations").select("id,name,normalized_name").order("name").limit(1000);
  if(error)throw error;
- if(!data?.length)return null;
- return data.find(x=>normStation(x.name)===n)||(data.length===1?data[0]:null);
+ const matches=(data||[]).filter(x=>{
+   const nameNorm=normStation(x.name), stored=normStation(x.normalized_name||"");
+   return nameNorm===n||stored===n||nameNorm.replace(/\\s+/g,"")===compact||stored.replace(/\\s+/g,"")===compact;
+ });
+ if(!matches.length)return null;
+ return matches[0];
 }
 async function findRouteInline(){
  const fromI=document.getElementById("routeFrom"),toI=document.getElementById("routeTo"),out=document.getElementById("routeResult");
