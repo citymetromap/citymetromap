@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>cityMetroMap — Delhi NCR Metro Routes</title>
+<style>
+:root{
+  --text:#151922; --muted:#697386; --line:#e8ebf0; --soft:#f7f8fa;
+  --blue:#2457d6; --blue-soft:#eef3ff; --danger:#c0392b;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;min-height:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:#fff}
+body{min-height:100dvh;-webkit-text-size-adjust:100%}
+button,input{font:inherit}
+button{cursor:pointer}
+.app{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+header{
+  height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;
+  position:sticky;top:0;background:rgba(255,255,255,.97);z-index:20
+}
+.header-inner{width:100%;padding:0 24px;margin:0;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-copy{display:flex;flex-direction:column;gap:2px}
+.brand-tagline{font-size:11px;color:var(--muted);line-height:1.2}
+.mark{width:34px;height:34px;border-radius:10px;background:#1d1d1d;color:#fff;display:grid;place-items:center;font-weight:800}
+.brand strong{font-size:19px;letter-spacing:-.4px}
+.city-pill{border:1px solid var(--line);padding:8px 12px;border-radius:9px;font-size:13px;color:#475467;background:#fff}
+main{width:100%;max-width:none;margin:0;padding:34px 24px 70px}
+.view{display:none}.view.active{display:block}
+.hero{padding:18px 0 28px}
+.eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--blue);font-size:11px;font-weight:800}
+h1{font-size:clamp(30px,6vw,48px);letter-spacing:-1.7px;line-height:1.08;margin:10px 0 8px}
+h2{font-size:22px;letter-spacing:-.5px;margin:0}
+h3{font-size:17px;margin:0}
+.sub{color:var(--muted);font-size:15px;margin:0}
+.search{position:relative;margin:20px 0 34px}
+.search input{width:100%;height:50px;border:1px solid #d9dee7;border-radius:11px;padding:0 16px 0 44px;outline:none}
+.search input:focus{border-color:#9eb5ef;box-shadow:0 0 0 4px var(--blue-soft)}
+.search span{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#8a93a3}
+.section{margin-top:34px}
+.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:14px}
+.section-head small{color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.card{
+  border:1px solid var(--line);border-radius:12px;background:#fff;padding:18px;
+  text-align:left;transition:.15s
+}
+.card:hover{border-color:#c5ccd8;box-shadow:0 5px 18px rgba(20,30,50,.06);transform:translateY(-1px)}
+.card .top{display:flex;justify-content:space-between;gap:12px}
+.card .arrow{color:#98a2b3}
+.card p{margin:7px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+.line-swatch{height:4px;border-radius:4px;margin:0 0 15px}
+.statbar{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:20px}
+.stat{padding:16px;border-right:1px solid var(--line)}.stat:last-child{border-right:0}
+.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:8px;overflow:auto;padding-bottom:2px;margin:18px 0}
+.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 12px;font-size:13px}
+.tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.back{border:0;background:none;padding:0;color:var(--blue);font-size:14px;margin-bottom:22px}
+.detail-head{border-bottom:1px solid var(--line);padding-bottom:22px}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+.route-planner{margin-top:0}
+.route-field{position:relative;background:var(--soft);border-radius:11px;padding:12px 16px}
+.route-field label{display:block;color:var(--muted);font-size:12px;margin-bottom:6px}
+.route-field input{width:100%;border:0;outline:none;background:transparent;font-weight:600;padding:4px 0;color:var(--text)}
+.suggestions{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(20,30,50,.12);z-index:30;max-height:240px;overflow:auto;display:none}
+.suggestions.show{display:block}
+.suggestion{display:block;width:100%;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;color:var(--text)}
+.suggestion:last-child{border-bottom:0}.suggestion:hover,.suggestion:focus,.suggestion.active{background:var(--blue-soft)}.suggestion-empty{cursor:default;color:var(--muted);font-size:13px}
+.route-button{margin-top:14px;width:100%;text-align:center;background:var(--text);color:#fff;border-color:var(--text)}
+.route-result{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:16px}
+.route-step{padding:10px 0;border-bottom:1px solid var(--line)}.route-step:last-child{border-bottom:0}
+.route-line{display:inline-block;border-radius:20px;padding:4px 8px;color:white;font-size:12px;margin:4px 0}
+.route-station-list{list-style:none;margin:10px 0 2px;padding:0 0 0 8px;border-left:2px solid var(--line)}
+.route-station-list li{position:relative;padding:5px 8px 5px 14px;font-size:14px;line-height:1.4}
+.route-station-list li:before{content:"";position:absolute;left:-14px;top:11px;width:8px;height:8px;border:2px solid var(--blue);background:#fff;border-radius:50%}
+.route-station-list li:first-child,.route-station-list li:last-child{font-weight:700}
+.route-station-list li:first-child:before,.route-station-list li:last-child:before{background:var(--blue)}
+.route-station-list .station-end{color:var(--text)}
+.route-station-list .station-count{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
+.journey-duration{display:flex;align-items:center;gap:10px;margin:12px 0 16px;padding:12px 14px;border-radius:10px;background:var(--soft)}
+.duration-icon{font-size:22px;color:var(--blue);line-height:1}
+.journey-duration b{display:block;font-size:14px}
+.journey-duration small{display:block;margin-top:3px;color:var(--muted);font-size:12px}
+.info{background:var(--soft);border-radius:11px;padding:16px}.info label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.info b{font-size:15px}
+.station-list{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.station{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:14px}
+.station:last-child{border-bottom:0}
+.station-number{display:inline-grid;place-items:center;width:28px;height:26px;margin-right:8px;border-radius:7px;background:var(--soft);color:var(--muted);font-size:12px}
+.station-count{font-size:10px;letter-spacing:.04em;color:var(--muted);margin-left:8px;font-weight:700}
+.station-direction{font-size:11px;color:var(--muted);text-align:right}
+.project{padding:18px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:5px 8px;background:#eef2f7;color:#475467;margin-bottom:10px}
+.project .meta{color:var(--muted);font-size:13px;margin-top:7px}
+.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed #d9dee7;border-radius:12px}
+footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98a2b3;font-size:11px}
+@media(max-width:760px){
+  header{height:64px}.grid{grid-template-columns:1fr 1fr}
+  .statbar{grid-template-columns:1fr}.stat{border-right:0;border-bottom:1px solid var(--line)}.stat:last-child{border-bottom:0}
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr}.info-grid{grid-template-columns:1fr}
+}
+</style>
+<link rel="manifest" href="../manifest.json">
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="header-inner">
+    <div class="brand"><div class="mark">M</div><div class="brand-copy"><strong>cityMetroMap</strong><span class="brand-tagline">Find. Route. Travel.</span></div></div>
+    <button class="city-pill" onclick="location.href='../index.html'">Delhi NCR ▾</button>
+  </div>
+</header>
+
+<main>
+  <section id="home" class="view active">
+    <div class="hero">
+      <h1>Find Route</h1>
+      <p class="sub">Plan a journey between Delhi NCR Metro stations.</p>
+    </div>
+    <div class="section route-planner">
+      <div class="info-grid">
+        <div class="route-field"><label for="routeFrom">FROM</label><input id="routeFrom" autocomplete="off" placeholder="Search starting station" aria-label="Starting station"><div class="suggestions" id="fromSuggestions" role="listbox"></div></div>
+        <div class="route-field"><label for="routeTo">TO</label><input id="routeTo" autocomplete="off" placeholder="Search destination station" aria-label="Destination station"><div class="suggestions" id="toSuggestions" role="listbox"></div></div>
+      </div>
+      <button class="card route-button" id="findRouteButton" type="button">FIND ROUTE</button>
+      <div id="routeResult" aria-live="polite"></div>
+    </div>
+    <div class="section">
+      <div class="section-head"><h2>Explore</h2><small>Choose a service</small></div>
+      <div class="grid">
+        <button class="card" onclick="showView('network')"><div class="top"><b>Delhi Metro Map</b><span class="arrow">›</span></div><p>Explore operational lines and network details.</p></button>
+        <button class="card" onclick="showView('fare')"><div class="top"><b>Ticket Fare</b><span class="arrow">›</span></div><p>Find fare information for your journey.</p></button>
+        <button class="card" onclick="showView('news')"><div class="top"><b>Latest News</b><span class="arrow">›</span></div><p>Metro updates and service announcements.</p></button>
+        <button class="card" onclick="showView('firstlast')"><div class="top"><b>First and Last Metro</b><span class="arrow">›</span></div><p>Check first and last train timings.</p></button>
+        <button class="card" onclick="showView('upcoming')"><div class="top"><b>Upcoming Metro</b><span class="arrow">›</span></div><p>Phase IV corridors and future expansion.</p></button>
+        <button class="card" onclick="showView('popular')"><div class="top"><b>Popular Lines</b><span class="arrow">›</span></div><p>View key network statistics and popular lines.</p></button>
+      </div>
+    </div>
+  </section>
+
+  <section id="network" class="view">
+    <button class="back" onclick="location.href='../index.html'">‹ Back to Delhi NCR</button>
+    <div class="detail-head"><div class="eyebrow">Delhi Metro</div><h1>Metro Network</h1><p class="sub">Current operational lines in Delhi NCR.</p></div>
+    <div class="section"><div class="grid" id="allLines"></div></div>
+    <div class="section">
+      <div class="section-head"><h2>Other NCR Metros</h2></div>
+      <div class="grid" id="otherNcrLines"></div>
+    </div>
+  </section>
+
+  <section id="line" class="view">
+    <button class="back" onclick="showView('network')">‹ Back to Metro Network</button>
+    <div id="lineDetail"></div>
+  </section>
+
+  <section id="fare" class="view"><button class="back" onclick="showView('home')">‹ Back</button><div class="detail-head"><h1>Ticket Fare</h1><p class="sub">Fare calculation will be connected after verified fare data is added.</p></div></section>
+  <section id="news" class="view"><button class="back" onclick="showView('home')">‹ Back</button><div class="detail-head"><h1>Latest News</h1><p class="sub">Verified service updates will appear here when a news source is connected.</p></div></section>
+  <section id="firstlast" class="view"><button class="back" onclick="showView('home')">‹ Back</button><div class="detail-head"><h1>First and Last Metro</h1><p class="sub">Station-wise timings will appear after timetable data is imported.</p></div></section>
+  <section id="popular" class="view"><button class="back" onclick="showView('home')">‹ Back</button><div class="detail-head"><h1>Popular Lines</h1><p class="sub">Delhi Metro operational network.</p></div><div class="statbar"><div class="stat"><b>10</b><span>Operational lines</span></div><div class="stat"><b>257</b><span>DMRC stations</span></div><div class="stat"><b>352.236 km</b><span>DMRC network</span></div></div><div class="section"><div class="grid" id="popularLines"></div></div></section>
+  <section id="upcoming" class="view">
+    <button class="back" onclick="location.href='../index.html'">‹ Back to Delhi NCR</button>
+    <div class="detail-head"><div class="eyebrow">Future Network</div><h1>Upcoming Metro</h1><p class="sub">Delhi Metro Phase IV corridors and expansion.</p></div>
+    <div class="tabs">
+      <button class="tab active" onclick="filterProjects('all',this)">All</button>
+      <button class="tab" onclick="filterProjects('priority',this)">Priority corridors</button>
+      <button class="tab" onclick="filterProjects('other',this)">Other Phase IV</button>
+    </div>
+    <div id="projects"></div>
+  </section>
+
+  <section id="project" class="view">
+    <button class="back" onclick="showView('upcoming')">‹ Back to Upcoming Metro</button>
+    <div id="projectDetail"></div>
+  </section>
+
+  <section id="route" class="view"><button class="back" onclick="showView('home')">‹ Back to journey planner</button><div class="detail-head"><h1>Find Route</h1><p class="sub">Use the From and To fields on the home page to plan your journey.</p></div><button class="card" style="margin-top:14px" onclick="showView('home')">Go to journey planner ›</button></section>
+</main>
+<footer>cityMetroMap · Find. Route. Travel.</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://dygejgqiajsqtmcnbvjz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_MQmkFkUkoF-PoGAETUKzow_yn_vjsRl";
+const metroDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const lines=[
+ {id:1,name:"Red Line",from:"Rithala",to:"Shaheed Sthal",stations:29,km:"34.549",color:"#e33b32"},
+ {id:2,name:"Yellow Line",from:"Samaypur Badli",to:"Millennium City Centre Gurugram",stations:37,km:"49.019",color:"#e5c400"},
+ {id:3,name:"Blue Line — Noida Route",from:"Dwarka Sector 21",to:"Noida Electronic City",stations:50,km:"56.114",color:"#1769d2"},
+ {id:4,name:"Blue Line — Vaishali Route",from:"Dwarka Sector 21",to:"Vaishali",stations:41,km:"—",color:"#1769d2"},
+ {id:5,name:"Green Line",from:"Kirti Nagar / Inderlok",to:"Brig. Hoshiar Singh",stations:24,km:"28.781",color:"#1c9b59"},
+ {id:6,name:"Violet Line",from:"Kashmere Gate",to:"Raja Nahar Singh",stations:34,km:"46.341",color:"#7a3fb0"},
+ {id:7,name:"Pink Line",from:"Majlis Park",to:"Shiv Vihar",stations:38,km:"59.242",color:"#e85a91"},
+ {id:8,name:"Magenta Line",from:"Krishna Park Extn. / Janakpuri West",to:"Botanical Garden",stations:26,km:"39.271",color:"#a447b9"},
+ {id:9,name:"Grey Line",from:"Dwarka",to:"Dhansa Bus Stand",stations:4,km:"5.491",color:"#777b83"},
+ {id:10,name:"Airport Express",from:"New Delhi",to:"Yashobhoomi Dwarka Sector 25",stations:7,km:"24.917",color:"#ef7f27"}
+];
+const otherMetroLines=[
+ {id:12,name:"Aqua Line",from:"Noida Sector 51",to:"Depot Station",stations:21,km:"—",color:"#1f8a9e"},
+ {id:11,name:"Rapid Metro",from:"Sector 55-56",to:"Phase 3",stations:11,km:"—",color:"#4a8f65"}
+];
+
+const projects=[
+ {id:"golden",title:"Delhi Aerocity – Tughlakabad",line:"Line 10 · Golden Line",status:"Priority corridor",km:"23.622 km",stations:15,desc:"New corridor connecting Delhi Aerocity with Tughlakabad through the southern part of Delhi.",st:["Delhi Aerocity","Mahipalpur","Vasant Kunj","Kishangarh Metro Station","Chhatarpur","Chhatarpur Mandir","IGNOU","Neb Sarai","Saket G Block","Ambedkar Nagar","Khanpur","Sangam Vihar – Tigri","Anandmayee Marg Jn","Tughlakabad Rly Colony","Tughlakabad Station"]},
+ {id:"magenta4",title:"Janakpuri West – Ramakrishna Ashram Marg",line:"Line 8 · Magenta Line Extension",status:"Priority corridor",km:"27.452 km",stations:21,desc:"Extension of the Magenta Line toward central Delhi.",st:["Keshopur","Paschim Vihar","Peeragarhi","Mangol Puri","West Enclave","Pushpanjali","Deepali Chowk","Pitampura","Prashant Vihar","North Pitampura","Haiderpur Badli Mor","Bhalaswa","Majlis Park","Azadpur","Ashok Vihar","Derawal Nagar","Ghanta Ghar","Pulbangash","Sadar Bazar","Nabi Karim","Ramakrishna Ashram Marg"]},
+ {id:"pink4",title:"Majlis Park – Maujpur",line:"Line 7 · Pink Line Extension",status:"Priority corridor",km:"12.318 km",stations:8,desc:"Extension completing the Pink Line corridor across north and northeast Delhi.",st:["Majlis Park","Bhalswa","Haiderpur Badli Mor","North Pitampura / Prashant Vihar","Madhuban Chowk","Deepali Chowk","Pitampura","Maujpur"]},
+ {id:"indraprastha",title:"Inderlok – Indraprastha",line:"Phase IV",status:"Other Phase IV corridor",km:"12.377 km",stations:10,desc:"Planned Phase IV corridor linking Inderlok and Indraprastha.",st:[]},
+ {id:"saket",title:"Lajpat Nagar – Saket G Block",line:"Phase IV",status:"Other Phase IV corridor",km:"8.385 km",stations:8,desc:"Planned corridor connecting Lajpat Nagar with Saket G Block.",st:[]},
+ {id:"narela",title:"Rithala – Narela – Nathupur (Kundli)",line:"Phase IV",status:"Other Phase IV corridor",km:"26.463 km",stations:21,desc:"Planned northern extension toward Narela and Nathupur/Kundli.",st:[]}
+];
+
+function showView(id){
+ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+function lineCard(l){
+ return `<button class="card" onclick="openLine(${l.id})">
+   <div class="line-swatch" style="background:${l.color}"></div>
+   <div class="top"><b>${l.name}</b><span class="arrow">›</span></div>
+   <p>${l.from} → ${l.to}<br>${l.stations} stations · ${l.km} km</p>
+ </button>`;
+}
+document.getElementById('popularLines').innerHTML=lines.slice(0,6).map(lineCard).join('');
+document.getElementById('allLines').innerHTML=lines.map(lineCard).join('');
+document.getElementById('otherNcrLines').innerHTML=otherMetroLines.map(lineCard).join('');
+
+async function openLine(id){
+ const l=lines.find(x=>x.id===id)||otherMetroLines.find(x=>x.id===id);
+ if(!l)return;
+ const detail=document.getElementById('lineDetail');
+ const supported=[1,2,3,4,5,6,7,8,9,10,11,12].includes(l.id);
+ detail.innerHTML=`
+  <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
+  <div class="eyebrow">${l.id===3||l.id===4?'Blue Line':`Line ${l.id}`}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
+  <div class="info-grid">
+   <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
+   <div class="info"><label>ROUTE LENGTH</label><b>${l.km==='—'?'Not verified':l.km+' km'}</b></div>
+  </div>
+  <div class="section"><div class="section-head"><h2>${l.id===5?"Kirti Nagar Branch — to Brig. Hoshiar Singh":"Station list"}</h2><small>${supported?'Ordered station sequence':'Coming next · one line at a time'}</small></div>
+   <div id="lineStationList" class="station-list"><div class="empty">Loading station sequence…</div></div>
+  </div>`;
+ showView('line');
+ const list=document.getElementById('lineStationList');
+ if(!supported){
+  list.innerHTML='<div class="empty">This line will be connected next. We are adding the verified station sequences one line at a time.</div>';
+  return;
+ }
+ // Red Line, Blue Line, Vaishali Branch, and Green Line main route use forward order; Yellow Line uses reverse order for its displayed direction.
+ const direction=(l.id===2||l.id===10)?'reverse':'forward';
+ const sequenceLineId=l.id===4?3:l.id;
+ try{
+  const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',sequenceLineId).eq('direction',direction).order('sequence_no',{ascending:true});
+  if(stopsError)throw stopsError;
+  if(!stops||!stops.length)throw new Error('No station sequence found for '+l.name+'.');
+  const ids=stops.map(s=>s.station_id);
+  const {data:stationRows,error:stationError}=await metroDb.from('stations').select('id,name').in('id',ids);
+  if(stationError)throw stationError;
+  const byId=new Map((stationRows||[]).map(s=>[String(s.id),s.name]));
+  const ordered=stops.map(s=>({sequence:s.sequence_no,name:byId.get(String(s.station_id))})).filter(s=>s.name);
+  if(ordered.length!==stops.length)throw new Error('Some station names could not be loaded.');
+  let branchHtml='';
+  if(l.id===4){
+   // Vaishali route: travel from Dwarka Sector 21 along the shared Blue Line to Yamuna Bank, then follow the Vaishali branch.
+   const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',4).eq('direction','forward').order('sequence_no',{ascending:true});
+   if(branchError)throw branchError;
+   if(!branchStops||!branchStops.length)throw new Error('No station sequence found for the Blue Line Vaishali Link.');
+   const branchIds=branchStops.map(s=>s.station_id);
+   const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
+   if(branchRowsError)throw branchRowsError;
+   const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
+   const branch=branchStops.map(s=>({id:String(s.station_id),name:branchNames.get(String(s.station_id))})).filter(s=>s.name);
+   if(branch.length!==branchStops.length)throw new Error('Some Vaishali Link station names could not be loaded.');
+   const yamunaIndex=ordered.findIndex(s=>/yamuna bank/i.test(s.name));
+   if(yamunaIndex<0)throw new Error('Yamuna Bank was not found on the shared Blue Line route.');
+   const vaishaliRoute=ordered.slice(0,yamunaIndex+1).concat(branch.filter(s=>!(/yamuna bank/i.test(s.name))).map(s=>({name:s.name})));
+   ordered.splice(0,ordered.length,...vaishaliRoute);
+   if(ordered.length!==l.stations)console.warn('Vaishali route expected '+l.stations+' stations; loaded '+ordered.length+'.');
+  }
+  if(l.id===5){
+   const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',5).eq('direction','ind erl ok_branch_forward').order('sequence_no',{ascending:true});
+   if(branchError)throw branchError;
+   if(!branchStops||!branchStops.length)throw new Error('No Inderlok branch sequence found.');
+   const branchIds=branchStops.map(s=>s.station_id);
+   const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
+   if(branchRowsError)throw branchRowsError;
+   const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
+   const branch=branchStops.map(s=>branchNames.get(String(s.station_id))).filter(Boolean);
+   const inderlokName=branch.find(name=>/inderlok/i.test(name));
+   const ashokIndex=ordered.findIndex(s=>/ashok park main/i.test(s.name));
+   if(!inderlokName)throw new Error('Inderlok was not found in the branch sequence.');
+   if(ashokIndex<0)throw new Error('Ashok Park Main was not found in the main Green Line sequence.');
+   // Complete second passenger route: Inderlok, then the shared Green Line from Ashok Park Main to Brig. Hoshiar Singh.
+   const inderlokRoute=[{name:inderlokName},...ordered.slice(ashokIndex)];
+   branchHtml='<div class="section"><div class="section-head"><h2>Inderlok Branch — to Brig. Hoshiar Singh</h2><small>'+inderlokRoute.length+' stations</small></div><div class="station-list">'+inderlokRoute.map((stop,i)=>'<div class="station"><span><b class="station-number">'+String(i+1).padStart(2,'0')+'</b> '+esc(stop.name)+(i===0?'<span class="station-count">START</span>':i===inderlokRoute.length-1?'<span class="station-count">END</span>':'')+'</span><span class="station-direction">'+(i===0?'Inderlok':i===inderlokRoute.length-1?'Brig. Hoshiar Singh':'')+'</span></div>').join('')+'</div></div>';
+  }
+  if(ordered.length!==l.stations)console.warn(l.name+' main route expected '+l.stations+' listed stations; loaded '+ordered.length+' main-route stations. Branch displayed separately.');
+  list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(i+1).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?esc(l.from):i===ordered.length-1?esc(l.to):''}</span></div>`).join('')+branchHtml;
+ }catch(error){
+  console.error('Could not load '+l.name+' station list:',error);
+  list.innerHTML='<div class="empty">Could not load the station list. Please check the station data connection.</div>';
+ }
+}
+function renderProjects(filter='all'){
+ let arr=projects;
+ if(filter==='priority') arr=projects.filter(p=>p.status==='Priority corridor');
+ if(filter==='other') arr=projects.filter(p=>p.status!=='Priority corridor');
+ document.getElementById('projects').innerHTML=arr.map(p=>`
+  <button class="project card" onclick="openProject('${p.id}')">
+   <span class="badge">${p.status}</span>
+   <div class="top"><h3>${p.title}</h3><span class="arrow">›</span></div>
+   <div class="meta">${p.line} · ${p.km} · ${p.stations} stations</div>
+   <p>${p.desc}</p>
+  </button>`).join('');
+}
+function filterProjects(f,el){
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderProjects(f);
+}
+function openProject(id){
+ const p=projects.find(x=>x.id===id);
+ const stationBlock=p.st.length?`<div class="section"><div class="section-head"><h2>Proposed stations</h2><small>${p.st.length} listed</small></div><div class="station-list">${p.st.map((s,i)=>`<div class="station"><span>${i+1}. ${s}</span><span>›</span></div>`).join('')}</div></div>`:'';
+ document.getElementById('projectDetail').innerHTML=`
+  <div class="detail-head"><span class="badge">${p.status}</span><div class="eyebrow">${p.line}</div><h1>${p.title}</h1><p class="sub">${p.desc}</p></div>
+  <div class="info-grid"><div class="info"><label>LENGTH</label><b>${p.km}</b></div><div class="info"><label>STATIONS</label><b>${p.stations}</b></div></div>
+  ${stationBlock}
+  <div class="section"><div class="section-head"><h2>Project information</h2></div><div class="empty">Progress, expected opening and live construction updates can be added here from verified official updates.</div></div>`;
+ showView('project');
+}
+renderProjects();
+
+function searchAll(){
+ const q=document.getElementById('searchBox').value.trim().toLowerCase();
+ const box=document.getElementById('searchResults');
+ if(!q){box.innerHTML='';return;}
+ const ls=lines.filter(l=>(l.name+' '+l.from+' '+l.to).toLowerCase().includes(q));
+ const ps=projects.filter(p=>(p.title+' '+p.line+' '+p.desc).toLowerCase().includes(q));
+ box.innerHTML=`<div class="section"><div class="section-head"><h2>Search results</h2><small>${ls.length+ps.length}</small></div>
+ <div class="grid">${ls.map(lineCard).join('')}${ps.map(p=>`<button class="card" onclick="openProject('${p.id}')"><div class="top"><b>${p.title}</b><span class="arrow">›</span></div><p>${p.line}<br>${p.km} · ${p.stations} stations</p></button>`).join('')}</div>
+ ${(!ls.length&&!ps.length)?'<div class="empty">No matching line or project found.</div>':''}</div>`;
+}
+
+function normStation(v){return (v||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+let stationCachePromise=null;
+async function loadStationCache(){
+ if(!stationCachePromise){
+  stationCachePromise=metroDb.from("stations").select("id,name,normalized_name").order("name").limit(1000)
+   .then(({data,error})=>{if(error)throw error;return data||[];})
+   .catch(error=>{stationCachePromise=null;throw error;});
+ }
+ return stationCachePromise;
+}
+async function stationHints(q){
+ const qn=normStation(q), compact=qn.replace(/\s+/g,"");
+ const data=await loadStationCache();
+ return data.filter(x=>{
+  const nameNorm=normStation(x.name), stored=normStation(x.normalized_name||"");
+  const nameCompact=nameNorm.replace(/\s+/g,""), storedCompact=stored.replace(/\s+/g,"");
+  return nameNorm.startsWith(qn)||stored.startsWith(qn)||nameCompact.startsWith(compact)||storedCompact.startsWith(compact)||
+   nameNorm.includes(qn)||stored.includes(qn)||nameCompact.includes(compact)||storedCompact.includes(compact);
+ }).sort((a,b)=>{
+  const an=normStation(a.name),bn=normStation(b.name);
+  const ap=an.startsWith(qn)||an.replace(/\s+/g,"").startsWith(compact)?0:1;
+  const bp=bn.startsWith(qn)||bn.replace(/\s+/g,"").startsWith(compact)?0:1;
+  return ap-bp||a.name.localeCompare(b.name);
+ }).slice(0,8);
+}
+function attachHints(inputId,boxId){
+ const input=document.getElementById(inputId),box=document.getElementById(boxId);
+ let timer=0,activeIndex=-1,requestVersion=0;
+ function close(){box.innerHTML="";box.classList.remove("show");activeIndex=-1;}
+ function choose(button){
+  if(!button||!button.dataset.id)return;
+  input.value=button.dataset.name;input.dataset.stationId=button.dataset.id;
+  close();input.dispatchEvent(new Event("change",{bubbles:true}));
+ }
+ function render(rows){
+  activeIndex=-1;
+  box.innerHTML=rows.length?rows.map(x=>`<button type="button" role="option" class="suggestion" data-id="${esc(x.id)}" data-name="${esc(x.name)}">${esc(x.name)}</button>`).join(""):'<div class="suggestion suggestion-empty">No matching station</div>';
+  box.classList.add("show");
+ }
+ input.addEventListener("input",()=>{
+  clearTimeout(timer);input.dataset.stationId="";const value=input.value.trim(),version=++requestVersion;
+  close();if(value.length<2)return;
+  timer=setTimeout(async()=>{
+   try{
+    const rows=await stationHints(value);
+    if(version!==requestVersion||input.value.trim()!==value)return;
+    render(rows);
+   }catch(error){
+    console.error("MetroGuide station suggestions failed:",error);
+    if(version!==requestVersion)return;
+    box.innerHTML='<div class="suggestion suggestion-empty">Station search is temporarily unavailable. Please try again.</div>';
+    box.classList.add("show");
+   }
+  },100);
+ });
+ input.addEventListener("focus",()=>{
+  if(input.value.trim().length>=2)input.dispatchEvent(new Event("input",{bubbles:true}));
+ });
+ input.addEventListener("keydown",e=>{
+  const options=[...box.querySelectorAll("button[data-id]")];
+  if(e.key==="ArrowDown"&&box.classList.contains("show")&&options.length){e.preventDefault();activeIndex=Math.min(activeIndex+1,options.length-1);options.forEach((b,i)=>b.classList.toggle("active",i===activeIndex));options[activeIndex].scrollIntoView({block:"nearest"});}
+  else if(e.key==="ArrowUp"&&box.classList.contains("show")&&options.length){e.preventDefault();activeIndex=Math.max(activeIndex-1,0);options.forEach((b,i)=>b.classList.toggle("active",i===activeIndex));options[activeIndex].scrollIntoView({block:"nearest"});}
+  else if(e.key==="Enter"&&box.classList.contains("show")&&activeIndex>=0){e.preventDefault();choose(options[activeIndex]);}
+  else if(e.key==="Escape")close();
+ });
+ box.addEventListener("mousedown",e=>{if(e.target.closest("button[data-id]"))e.preventDefault();});
+ box.addEventListener("click",e=>choose(e.target.closest("button[data-id]")));
+ document.addEventListener("click",e=>{if(!input.contains(e.target)&&!box.contains(e.target))close();});
+}
+async function resolveStation(input){
+ if(input.dataset.stationId){return {id:input.dataset.stationId,name:input.value};}
+ const n=normStation(input.value), compact=n.replace(/\\s+/g,"");
+ const {data,error}=await metroDb.from("stations").select("id,name,normalized_name").order("name").limit(1000);
+ if(error)throw error;
+ const matches=(data||[]).filter(x=>{
+   const nameNorm=normStation(x.name), stored=normStation(x.normalized_name||"");
+   return nameNorm===n||stored===n||nameNorm.replace(/\\s+/g,"")===compact||stored.replace(/\\s+/g,"")===compact;
+ });
+ if(!matches.length)return null;
+ return matches[0];
+}
+async function findRouteInline(){
+ const fromI=document.getElementById("routeFrom"),toI=document.getElementById("routeTo"),out=document.getElementById("routeResult");
+ out.innerHTML="";
+ if(!fromI.value.trim()||!toI.value.trim()){out.innerHTML='<div class="empty">Enter both starting and destination stations.</div>';return;}
+ out.innerHTML='<div class="empty">Finding route…</div>';
+ try{
+  const [from,to]=await Promise.all([resolveStation(fromI),resolveStation(toI)]);
+  if(!from||!to){out.innerHTML='<div class="empty">Choose a station from the suggestions for both fields.</div>';return;}
+  if(String(from.id)===String(to.id)){out.innerHTML='<div class="empty">Choose two different stations.</div>';return;}
+  const [{data:rows,error},{data:transfers,error:transferError}]=await Promise.all([
+   metroDb.from("line_stops").select("station_id,line_id,sequence_no,direction,metro_lines(id,name,color),stations(id,name)"),
+   metroDb.from("station_transfers").select("station_a_id,station_b_id,transfer_minutes,stations_a:stations!station_transfers_station_a_id_fkey(id,name),stations_b:stations!station_transfers_station_b_id_fkey(id,name)")
+  ]);
+  if(error)throw error;
+  if(transferError)throw transferError;
+  const lineKey=line=>{
+   const name=String(line?.name||"").toLowerCase();
+   if(name.startsWith("blue line"))return "blue";
+   return String(line?.id??name);
+  };
+  const displayLine=line=>{
+   if(String(line?.name||"").toLowerCase().startsWith("blue line"))return {id:"blue",name:"Blue Line",color:line.color||"#1769d2"};
+   return line;
+  };
+  const byLine=new Map(),adj=new Map();
+  for(const r of rows||[]){
+   const k=String(r.line_id)+"|"+String(r.direction||"forward");
+   if(!byLine.has(k))byLine.set(k,[]);
+   byLine.get(k).push(r);
+   if(!adj.has(String(r.station_id)))adj.set(String(r.station_id),[]);
+  }
+  for(const arr of byLine.values()){
+   arr.sort((a,b)=>a.sequence_no-b.sequence_no);
+   for(let i=0;i<arr.length-1;i++){
+    const a=arr[i],b=arr[i+1];
+    if(!adj.has(String(a.station_id)))adj.set(String(a.station_id),[]);
+    if(!adj.has(String(b.station_id)))adj.set(String(b.station_id),[]);
+    adj.get(String(a.station_id)).push({to:String(b.station_id),line:a.metro_lines,station:b.stations});
+    adj.get(String(b.station_id)).push({to:String(a.station_id),line:a.metro_lines,station:a.stations});
+   }
+  }
+  for(const t of transfers||[]){
+   const a=t.stations_a,b=t.stations_b;
+   if(!a||!b)continue;
+   if(!adj.has(String(a.id)))adj.set(String(a.id),[]);
+   if(!adj.has(String(b.id)))adj.set(String(b.id),[]);
+   const edge={id:"transfer",name:"Change metro line",color:"#64748b"};
+   adj.get(String(a.id)).push({to:String(b.id),line:edge,station:b,transfer:true,minutes:t.transfer_minutes||0});
+   adj.get(String(b.id)).push({to:String(a.id),line:edge,station:a,transfer:true,minutes:t.transfer_minutes||0});
+  }
+  // Prefer fewer line changes first, then fewer station-to-station moves.
+  // Treat the Blue Line's Noida and Vaishali branches as one passenger line.
+  const startId=String(from.id),goalId=String(to.id);
+  const stateKey=(station,key)=>station+"|"+key;
+  const startState=stateKey(startId,"START");
+  const best=new Map([[startState,{transfers:0,hops:0}]]);
+  const prev=new Map([[startState,null]]),via=new Map(),stateInfo=new Map([[startState,{station:startId,lineKey:"START"}]]);
+  const queue=[{state:startState,transfers:0,hops:0}];
+  let goalState=null;
+  while(queue.length){
+   queue.sort((a,b)=>a.transfers-b.transfers||a.hops-b.hops);
+   const current=queue.shift(),known=best.get(current.state);
+   if(!known||known.transfers!==current.transfers||known.hops!==current.hops)continue;
+   const currentInfo=stateInfo.get(current.state);
+   if(currentInfo.station===goalId){goalState=current.state;break;}
+   for(const e of adj.get(currentInfo.station)||[]){
+    const nextLineKey=e.transfer?currentInfo.lineKey:lineKey(e.line);
+    const changed=currentInfo.lineKey!=="START"&&!e.transfer&&currentInfo.lineKey!==nextLineKey?1:0;
+    const nextTransfers=current.transfers+changed;
+    const nextHops=current.hops+1;
+    const nextState=stateKey(e.to,nextLineKey);
+    const old=best.get(nextState);
+    if(old&&(old.transfers<nextTransfers||(old.transfers===nextTransfers&&old.hops<=nextHops)))continue;
+    best.set(nextState,{transfers:nextTransfers,hops:nextHops});
+    prev.set(nextState,current.state);
+    via.set(nextState,e);
+    stateInfo.set(nextState,{station:e.to,lineKey:nextLineKey});
+    queue.push({state:nextState,transfers:nextTransfers,hops:nextHops});
+   }
+  }
+  if(!goalState){out.innerHTML='<div class="empty">No route found. Check that line-stop data has been imported.</div>';return;}
+  const states=[];let cursor=goalState;
+  while(cursor!==startState){states.push({state:cursor,edge:via.get(cursor)});cursor=prev.get(cursor);}
+  states.push({state:startState,edge:null});states.reverse();
+  const path=states.map((x,i)=>({id:stateInfo.get(x.state).station,edge:x.edge,stationName:i===0?from.name:(x.edge?.station?.name||"")}));
+  const segments=[];
+  for(let i=1;i<path.length;i++){
+   const e=path[i].edge;
+   const fromName=path[i-1].stationName;
+   if(e.transfer){segments.push({transfer:true,line:e.line,stations:[fromName,e.station.name],minutes:e.minutes||0});continue;}
+   const line=displayLine(e.line),key=lineKey(e.line);
+   if(!segments.length||segments[segments.length-1].transfer||segments[segments.length-1].key!==key)segments.push({line, key, stations:[fromName,e.station.name]});
+   else segments[segments.length-1].stations.push(e.station.name);
+  }
+  const interchangeCount=segments.filter((s,i)=>s.transfer||(i>0&&!s.transfer&&!segments[i-1].transfer&&s.key!==segments[i-1].key)).length;
+  const totalHops=path.length-1;
+  // Planning estimate only: allow about 2 minutes per station-to-station ride and 5 minutes per line change.
+  const estimatedMinutes=Math.max(1,Math.round(totalHops*2+interchangeCount*5));
+  const durationLabel=minutes=>minutes>=60?`${Math.floor(minutes/60)} hr ${minutes%60?minutes%60+" min":""}`.trim():`${minutes} min`;
+  out.innerHTML=`<div class="route-result"><div class="section-head"><h2>Journey route</h2><small>${totalHops} stops · ${interchangeCount} Metro Line Change${interchangeCount===1?"":"s"}</small></div><p class="journey-summary"><b>${esc(from.name)} → ${esc(to.name)}</b></p><div class="journey-duration"><span class="duration-icon">◷</span><span><b>Estimated journey time: about ${durationLabel(estimatedMinutes)}</b><small>Excludes waiting time; actual duration may vary.</small></span></div>${segments.map(seg=>seg.transfer?`<div class="route-step"><span class="route-line" style="background:#64748b">Change metro line</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[1])}</b></div><small>Walk between stations · about ${durationLabel(seg.minutes||5)}</small></div>`:`<div class="route-step"><span class="route-line" style="background:${esc(seg.line.color||"#2457d6")}">${esc(seg.line.name)}</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[seg.stations.length-1])}</b></div><small>${seg.stations.length-1} Metro Station Stops · about ${durationLabel((seg.stations.length-1)*2)}</small><ol class="route-station-list" aria-label="${esc(seg.line.name)} stations">${seg.stations.map((station,i)=>`<li class="station-end">${esc(station)}${i===0?'<span class="station-count">START</span>':i===seg.stations.length-1?'<span class="station-count">END</span>':""}</li>`).join("")}</ol></div>`).join("")}<p class="sub" style="margin-top:12px">Time is an estimate based on average ride time per stop plus transfer allowance, not live train timings.</p></div>`;
+ }catch(e){console.error(e);out.innerHTML='<div class="empty">Could not calculate route. Check Supabase setup, table names, and read policies.</div>';}
+}
+document.addEventListener("DOMContentLoaded",()=>{attachHints("routeFrom","fromSuggestions");attachHints("routeTo","toSuggestions");document.getElementById("findRouteButton").addEventListener("click",findRouteInline);});
+
+</script>
+</body>
+</html>
