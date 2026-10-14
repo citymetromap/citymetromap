@@ -285,14 +285,19 @@ async function openLine(id){
   if(l.id===5){
    const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',5).eq('direction','ind erl ok_branch_forward').order('sequence_no',{ascending:true});
    if(branchError)throw branchError;
-   if(branchStops&&branchStops.length){
-    const branchIds=branchStops.map(s=>s.station_id);
-    const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
-    if(branchRowsError)throw branchRowsError;
-    const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
-    const branch=branchStops.map(s=>branchNames.get(String(s.station_id))).filter(Boolean);
-    branchHtml='<div class="section"><div class="section-head"><h2>Inderlok Branch</h2><small>'+branch.length+' stations</small></div><div class="station-list">'+branch.map((name,i)=>'<div class="station"><span><b class="station-number">'+String(i+1).padStart(2,'0')+'</b> '+esc(name)+(i===0?'<span class="station-count">START</span>':'')+'</span></div>').join('')+'</div></div>';
-   }
+   if(!branchStops||!branchStops.length)throw new Error('No Inderlok branch sequence found.');
+   const branchIds=branchStops.map(s=>s.station_id);
+   const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
+   if(branchRowsError)throw branchRowsError;
+   const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
+   const branch=branchStops.map(s=>branchNames.get(String(s.station_id))).filter(Boolean);
+   const inderlokName=branch.find(name=>/inderlok/i.test(name));
+   const ashokIndex=ordered.findIndex(s=>/ashok park main/i.test(s.name));
+   if(!inderlokName)throw new Error('Inderlok was not found in the branch sequence.');
+   if(ashokIndex<0)throw new Error('Ashok Park Main was not found in the main Green Line sequence.');
+   // Complete second passenger route: Inderlok, then the shared Green Line from Ashok Park Main to Brig. Hoshiar Singh.
+   const inderlokRoute=[{name:inderlokName},...ordered.slice(ashokIndex)];
+   branchHtml='<div class="section"><div class="section-head"><h2>Inderlok Branch — to Brig. Hoshiar Singh</h2><small>'+inderlokRoute.length+' stations</small></div><div class="station-list">'+inderlokRoute.map((stop,i)=>'<div class="station"><span><b class="station-number">'+String(i+1).padStart(2,'0')+'</b> '+esc(stop.name)+(i===0?'<span class="station-count">START</span>':i===inderlokRoute.length-1?'<span class="station-count">END</span>':'')+'</span><span class="station-direction">'+(i===0?'Inderlok':i===inderlokRoute.length-1?'Brig. Hoshiar Singh':'')+'</span></div>').join('')+'</div></div>';
   }
   if(ordered.length!==l.stations)console.warn(l.name+' main route expected '+l.stations+' listed stations; loaded '+ordered.length+' main-route stations. Branch displayed separately.');
   list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(i+1).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?esc(l.from):i===ordered.length-1?esc(l.to):''}</span></div>`).join('')+branchHtml;
