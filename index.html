@@ -234,7 +234,7 @@ async function openLine(id){
  const l=lines.find(x=>x.id===id);
  if(!l)return;
  const detail=document.getElementById('lineDetail');
- const supported=[1,2,3,4].includes(l.id);
+ const supported=[1,2,3,4,5].includes(l.id);
  detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
   <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
@@ -251,7 +251,7 @@ async function openLine(id){
   list.innerHTML='<div class="empty">This line will be connected next. We are adding the verified station sequences one line at a time.</div>';
   return;
  }
- // Red Line, Blue Line, and the Vaishali Branch use forward order; Yellow Line uses reverse order for its displayed direction.
+ // Red Line, Blue Line, Vaishali Branch, and Green Line main route use forward order; Yellow Line uses reverse order for its displayed direction.
  const direction=l.id===2?'reverse':'forward';
  try{
   const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',l.id).eq('direction',direction).order('sequence_no',{ascending:true});
@@ -263,8 +263,21 @@ async function openLine(id){
   const byId=new Map((stationRows||[]).map(s=>[String(s.id),s.name]));
   const ordered=stops.map(s=>({sequence:s.sequence_no,name:byId.get(String(s.station_id))})).filter(s=>s.name);
   if(ordered.length!==stops.length)throw new Error('Some station names could not be loaded.');
-  if(ordered.length!==l.stations)console.warn(l.name+' expected '+l.stations+' stations; loaded '+ordered.length);
-  list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(i+1).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?esc(l.from):i===ordered.length-1?esc(l.to):''}</span></div>`).join('');
+  let branchHtml='';
+  if(l.id===5){
+   const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',5).eq('direction','ind erl ok_branch_forward').order('sequence_no',{ascending:true});
+   if(branchError)throw branchError;
+   if(branchStops&&branchStops.length){
+    const branchIds=branchStops.map(s=>s.station_id);
+    const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
+    if(branchRowsError)throw branchRowsError;
+    const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
+    const branch=branchStops.map(s=>branchNames.get(String(s.station_id))).filter(Boolean);
+    branchHtml='<div class="section"><div class="section-head"><h2>Inderlok Branch</h2><small>'+branch.length+' stations</small></div><div class="station-list">'+branch.map((name,i)=>'<div class="station"><span><b class="station-number">'+String(i+1).padStart(2,'0')+'</b> '+esc(name)+(i===0?'<span class="station-count">START</span>':'')+'</span></div>').join('')+'</div></div>';
+   }
+  }
+  if(ordered.length!==l.stations)console.warn(l.name+' main route expected '+l.stations+' listed stations; loaded '+ordered.length+' main-route stations. Branch displayed separately.');
+  list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(i+1).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?esc(l.from):i===ordered.length-1?esc(l.to):''}</span></div>`).join('')+branchHtml;
  }catch(error){
   console.error('Could not load '+l.name+' station list:',error);
   list.innerHTML='<div class="empty">Could not load the station list. Please check the station data connection.</div>';
