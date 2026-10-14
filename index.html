@@ -242,7 +242,7 @@ async function openLine(id){
    <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
    <div class="info"><label>ROUTE LENGTH</label><b>${l.km==='—'?'Not verified':l.km+' km'}</b></div>
   </div>
-  <div class="section"><div class="section-head"><h2>Station list</h2><small>${supported?'Ordered station sequence':'Coming next · one line at a time'}</small></div>
+  <div class="section"><div class="section-head"><h2>${l.id===5?"Kirti Nagar Branch — to Brig. Hoshiar Singh":"Station list"}</h2><small>${supported?'Ordered station sequence':'Coming next · one line at a time'}</small></div>
    <div id="lineStationList" class="station-list"><div class="empty">Loading station sequence…</div></div>
   </div>`;
  showView('line');
