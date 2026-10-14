@@ -315,12 +315,21 @@ async function findRouteInline(){
   const [from,to]=await Promise.all([resolveStation(fromI),resolveStation(toI)]);
   if(!from||!to){out.innerHTML='<div class="empty">Choose a station from the suggestions for both fields.</div>';return;}
   if(String(from.id)===String(to.id)){out.innerHTML='<div class="empty">Choose two different stations.</div>';return;}
-  const [{data:rows,error},{data:transfers, error:transferError}]=await Promise.all([
+  const [{data:rows,error},{data:transfers,error:transferError}]=await Promise.all([
    metroDb.from("line_stops").select("station_id,line_id,sequence_no,direction,metro_lines(id,name,color),stations(id,name)"),
    metroDb.from("station_transfers").select("station_a_id,station_b_id,transfer_minutes,stations_a:stations!station_transfers_station_a_id_fkey(id,name),stations_b:stations!station_transfers_station_b_id_fkey(id,name)")
   ]);
   if(error)throw error;
   if(transferError)throw transferError;
+  const lineKey=line=>{
+   const name=String(line?.name||"").toLowerCase();
+   if(name.startsWith("blue line"))return "blue";
+   return String(line?.id??name);
+  };
+  const displayLine=line=>{
+   if(String(line?.name||"").toLowerCase().startsWith("blue line"))return {id:"blue",name:"Blue Line",color:line.color||"#1769d2"};
+   return line;
+  };
   const byLine=new Map(),adj=new Map();
   for(const r of rows||[]){
    const k=String(r.line_id)+"|"+String(r.direction||"forward");
@@ -347,20 +356,53 @@ async function findRouteInline(){
    adj.get(String(a.id)).push({to:String(b.id),line:edge,station:b,transfer:true,minutes:t.transfer_minutes||0});
    adj.get(String(b.id)).push({to:String(a.id),line:edge,station:a,transfer:true,minutes:t.transfer_minutes||0});
   }
-  const start=String(from.id),goal=String(to.id),queue=[start],prev=new Map([[start,null]]),via=new Map();
-  while(queue.length){const cur=queue.shift();if(cur===goal)break;for(const e of adj.get(cur)||[]){if(prev.has(e.to))continue;prev.set(e.to,cur);via.set(e.to,e);queue.push(e.to);}}
-  if(!prev.has(goal)){out.innerHTML='<div class="empty">No route found. Check that line-stop data has been imported.</div>';return;}
-  const path=[];let cur=goal;while(cur!==start){path.push({id:cur,edge:via.get(cur)});cur=prev.get(cur);}path.push({id:start,edge:null});path.reverse();
+  // Prefer fewer line changes first, then fewer station-to-station moves.
+  // Treat the Blue Line's Noida and Vaishali branches as one passenger line.
+  const startId=String(from.id),goalId=String(to.id);
+  const stateKey=(station,key)=>station+"|"+key;
+  const startState=stateKey(startId,"START");
+  const best=new Map([[startState,{transfers:0,hops:0}]]);
+  const prev=new Map([[startState,null]]),via=new Map(),stateInfo=new Map([[startState,{station:startId,lineKey:"START"}]]);
+  const queue=[{state:startState,transfers:0,hops:0}];
+  let goalState=null;
+  while(queue.length){
+   queue.sort((a,b)=>a.transfers-b.transfers||a.hops-b.hops);
+   const current=queue.shift(),known=best.get(current.state);
+   if(!known||known.transfers!==current.transfers||known.hops!==current.hops)continue;
+   const currentInfo=stateInfo.get(current.state);
+   if(currentInfo.station===goalId){goalState=current.state;break;}
+   for(const e of adj.get(currentInfo.station)||[]){
+    const nextLineKey=e.transfer?currentInfo.lineKey:lineKey(e.line);
+    const changed=currentInfo.lineKey!=="START"&&!e.transfer&&currentInfo.lineKey!==nextLineKey?1:0;
+    const nextTransfers=current.transfers+changed;
+    const nextHops=current.hops+1;
+    const nextState=stateKey(e.to,nextLineKey);
+    const old=best.get(nextState);
+    if(old&&(old.transfers<nextTransfers||(old.transfers===nextTransfers&&old.hops<=nextHops)))continue;
+    best.set(nextState,{transfers:nextTransfers,hops:nextHops});
+    prev.set(nextState,current.state);
+    via.set(nextState,e);
+    stateInfo.set(nextState,{station:e.to,lineKey:nextLineKey});
+    queue.push({state:nextState,transfers:nextTransfers,hops:nextHops});
+   }
+  }
+  if(!goalState){out.innerHTML='<div class="empty">No route found. Check that line-stop data has been imported.</div>';return;}
+  const states=[];let cursor=goalState;
+  while(cursor!==startState){states.push({state:cursor,edge:via.get(cursor)});cursor=prev.get(cursor);}
+  states.push({state:startState,edge:null});states.reverse();
+  const path=states.map((x,i)=>({id:stateInfo.get(x.state).station,edge:x.edge,stationName:i===0?from.name:(x.edge?.station?.name||"")}));
   const segments=[];
   for(let i=1;i<path.length;i++){
    const e=path[i].edge;
-   const fromName=path[i-1].edge?.station?.name||from.name;
+   const fromName=path[i-1].stationName;
    if(e.transfer){segments.push({transfer:true,line:e.line,stations:[fromName,e.station.name],minutes:e.minutes||0});continue;}
-   if(!segments.length||segments[segments.length-1].transfer||String(segments[segments.length-1].line.id)!==String(e.line.id))segments.push({line:e.line,stations:[fromName,e.station.name]});
+   const line=displayLine(e.line),key=lineKey(e.line);
+   if(!segments.length||segments[segments.length-1].transfer||segments[segments.length-1].key!==key)segments.push({line, key, stations:[fromName,e.station.name]});
    else segments[segments.length-1].stations.push(e.station.name);
   }
-  const interchangeCount=segments.filter((s,i)=>s.transfer||(i>0&&!s.transfer&&!segments[i-1].transfer&&String(s.line.id)!==String(segments[i-1].line.id))).length;
-  out.innerHTML=`<div class="route-result"><div class="section-head"><h2>Journey route</h2><small>${path.length-1} stops · ${interchangeCount} transfer${interchangeCount===1?"":"s"}</small></div><p><b>${esc(from.name)}</b> → <b>${esc(to.name)}</b></p>${segments.map((seg,i)=>seg.transfer?`<div class="route-step"><span class="route-line" style="background:#64748b">Transfer</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[1])}</b></div><small>Walk between stations · about ${seg.minutes} minutes</small></div>`:`<div class="route-step"><span class="route-line" style="background:${esc(seg.line.color||"#2457d6")}">${esc(seg.line.name)}</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[seg.stations.length-1])}</b></div><small>${seg.stations.length-1} Metro Station Stops</small></div>`).join("")}<p class="sub" style="margin-top:12px">Calculated from station-line sequences and explicit transfer links in your database.</p></div>`;
+  const interchangeCount=segments.filter((s,i)=>s.transfer||(i>0&&!s.transfer&&!segments[i-1].transfer&&s.key!==segments[i-1].key)).length;
+  const totalHops=path.length-1;
+  out.innerHTML=\`<div class="route-result"><div class="section-head"><h2>Journey route</h2><small>\${totalHops} stops · \${interchangeCount} transfer\${interchangeCount===1?"":"s"}</small></div><p><b>\${esc(from.name)}</b> → <b>\${esc(to.name)}</b></p>\${segments.map(seg=>seg.transfer?\`<div class="route-step"><span class="route-line" style="background:#64748b">Change metro line</span><div><b>\${esc(seg.stations[0])}</b> → <b>\${esc(seg.stations[1])}</b></div><small>Walk between stations · about \${seg.minutes} minutes</small></div>\`:\`<div class="route-step"><span class="route-line" style="background:\${esc(seg.line.color||"#2457d6")}">\${esc(seg.line.name)}</span><div><b>\${esc(seg.stations[0])}</b> → <b>\${esc(seg.stations[seg.stations.length-1])}</b></div><small>\${seg.stations.length-1} Metro Station Stops</small></div>\`).join("")}<p class="sub" style="margin-top:12px">Route prioritizes fewer metro-line changes, using station-line sequences and transfer links in your database.</p></div>\`;
  }catch(e){console.error(e);out.innerHTML='<div class="empty">Could not calculate route. Check Supabase setup, table names, and read policies.</div>';}
 }
 document.addEventListener("DOMContentLoaded",()=>{attachHints("routeFrom","fromSuggestions");attachHints("routeTo","toSuggestions");document.getElementById("findRouteButton").addEventListener("click",findRouteInline);});
