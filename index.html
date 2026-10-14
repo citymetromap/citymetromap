@@ -76,6 +76,13 @@ h3{font-size:17px;margin:0}
 .route-result{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:16px}
 .route-step{padding:10px 0;border-bottom:1px solid var(--line)}.route-step:last-child{border-bottom:0}
 .route-line{display:inline-block;border-radius:20px;padding:4px 8px;color:white;font-size:12px;margin:4px 0}
+.route-station-list{list-style:none;margin:10px 0 2px;padding:0 0 0 8px;border-left:2px solid var(--line)}
+.route-station-list li{position:relative;padding:5px 8px 5px 14px;font-size:14px;line-height:1.4}
+.route-station-list li:before{content:"";position:absolute;left:-14px;top:11px;width:8px;height:8px;border:2px solid var(--blue);background:#fff;border-radius:50%}
+.route-station-list li:first-child,.route-station-list li:last-child{font-weight:700}
+.route-station-list li:first-child:before,.route-station-list li:last-child:before{background:var(--blue)}
+.route-station-list .station-end{color:var(--text)}
+.route-station-list .station-count{font-size:11px;color:var(--muted);font-weight:400;margin-left:6px}
 .info{background:var(--soft);border-radius:11px;padding:16px}.info label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.info b{font-size:15px}
 .station-list{border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .station{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:14px}
@@ -446,7 +453,7 @@ async function findRouteInline(){
   }
   const interchangeCount=segments.filter((s,i)=>s.transfer||(i>0&&!s.transfer&&!segments[i-1].transfer&&s.key!==segments[i-1].key)).length;
   const totalHops=path.length-1;
-  out.innerHTML=`<div class="route-result"><div class="section-head"><h2>Journey route</h2><small>${totalHops} stops · ${interchangeCount} transfer${interchangeCount===1?"":"s"}</small></div><p><b>${esc(from.name)}</b> → <b>${esc(to.name)}</b></p>${segments.map(seg=>seg.transfer?`<div class="route-step"><span class="route-line" style="background:#64748b">Change metro line</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[1])}</b></div><small>Walk between stations · about ${seg.minutes} minutes</small></div>`:`<div class="route-step"><span class="route-line" style="background:${esc(seg.line.color||"#2457d6")}">${esc(seg.line.name)}</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[seg.stations.length-1])}</b></div><small>${seg.stations.length-1} Metro Station Stops</small></div>`).join("")}<p class="sub" style="margin-top:12px">Route prioritizes fewer metro-line changes, using station-line sequences and transfer links in your database.</p></div>`;
+  out.innerHTML=`<div class="route-result"><div class="section-head"><h2>Journey route</h2><small>${totalHops} stops · ${interchangeCount} transfer${interchangeCount===1?"":"s"}</small></div><p><b>${esc(from.name)}</b> → <b>${esc(to.name)}</b></p>${segments.map(seg=>seg.transfer?`<div class="route-step"><span class="route-line" style="background:#64748b">Change metro line</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[1])}</b></div><small>Walk between stations · about ${seg.minutes} minutes</small></div>`:`<div class="route-step"><span class="route-line" style="background:${esc(seg.line.color||"#2457d6")}">${esc(seg.line.name)}</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[seg.stations.length-1])}</b></div><small>${seg.stations.length-1} Metro Station Stops</small><ol class="route-station-list" aria-label="${esc(seg.line.name)} stations">${seg.stations.map((station,i)=>`<li class="station-end">${esc(station)}${i===0?'<span class="station-count">START</span>':i===seg.stations.length-1?'<span class="station-count">END</span>':""}</li>`).join("")}</ol></div>`).join("")}<p class="sub" style="margin-top:12px">Route prioritizes fewer metro-line changes, using station-line sequences and transfer links in your database.</p></div>`;
  }catch(e){console.error(e);out.innerHTML='<div class="empty">Could not calculate route. Check Supabase setup, table names, and read policies.</div>';}
 }
 document.addEventListener("DOMContentLoaded",()=>{attachHints("routeFrom","fromSuggestions");attachHints("routeTo","toSuggestions");document.getElementById("findRouteButton").addEventListener("click",findRouteInline);});
