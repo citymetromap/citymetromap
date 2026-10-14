@@ -234,6 +234,7 @@ async function openLine(id){
  const l=lines.find(x=>x.id===id);
  if(!l)return;
  const detail=document.getElementById('lineDetail');
+ const supported=[1,2].includes(l.id);
  detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
   <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
@@ -241,30 +242,32 @@ async function openLine(id){
    <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
    <div class="info"><label>LENGTH</label><b>${l.km} km</b></div>
   </div>
-  <div class="section"><div class="section-head"><h2>Station list</h2><small>${l.id===1?'Rithala → Shaheed Sthal':'Coming next · one line at a time'}</small></div>
+  <div class="section"><div class="section-head"><h2>Station list</h2><small>${supported?'Ordered station sequence':'Coming next · one line at a time'}</small></div>
    <div id="lineStationList" class="station-list"><div class="empty">Loading station sequence…</div></div>
   </div>`;
  showView('line');
- if(l.id!==1){
-  document.getElementById('lineStationList').innerHTML='<div class="empty">We are connecting this line next. The Red Line station list is being completed first.</div>';
+ const list=document.getElementById('lineStationList');
+ if(!supported){
+  list.innerHTML='<div class="empty">This line will be connected next. We are adding the verified station sequences one line at a time.</div>';
   return;
  }
- const list=document.getElementById('lineStationList');
+ // Red Line is stored in Rithala-to-Shaheed-Sthal order; Yellow Line is stored in reverse order for Samaypur Badli-to-Millennium City Centre.
+ const direction=l.id===1?'forward':'reverse';
  try{
-  const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',1).eq('direction','forward').order('sequence_no',{ascending:true});
+  const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',l.id).eq('direction',direction).order('sequence_no',{ascending:true});
   if(stopsError)throw stopsError;
-  if(!stops||!stops.length)throw new Error('No Red Line station sequence found.');
+  if(!stops||!stops.length)throw new Error('No station sequence found for '+l.name+'.');
   const ids=stops.map(s=>s.station_id);
   const {data:stationRows,error:stationError}=await metroDb.from('stations').select('id,name').in('id',ids);
   if(stationError)throw stationError;
   const byId=new Map((stationRows||[]).map(s=>[String(s.id),s.name]));
   const ordered=stops.map(s=>({sequence:s.sequence_no,name:byId.get(String(s.station_id))})).filter(s=>s.name);
-  if(ordered.length!==stops.length)throw new Error('Some Red Line station names could not be loaded.');
-  if(ordered.length!==29)console.warn('Red Line expected 29 stations; loaded',ordered.length);
-  list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(s.sequence).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?'Rithala':i===ordered.length-1?'Shaheed Sthal':''}</span></div>`).join('');
+  if(ordered.length!==stops.length)throw new Error('Some station names could not be loaded.');
+  if(ordered.length!==l.stations)console.warn(l.name+' expected '+l.stations+' stations; loaded '+ordered.length);
+  list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(i+1).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?esc(l.from):i===ordered.length-1?esc(l.to):''}</span></div>`).join('');
  }catch(error){
-  console.error('Could not load Red Line station list:',error);
-  list.innerHTML='<div class="empty">Could not load the Red Line station list. Please check the station data connection.</div>';
+  console.error('Could not load '+l.name+' station list:',error);
+  list.innerHTML='<div class="empty">Could not load the station list. Please check the station data connection.</div>';
  }
 }
 function renderProjects(filter='all'){
