@@ -359,7 +359,7 @@ async function findRouteInline(){
    if(!segments.length||segments[segments.length-1].transfer||String(segments[segments.length-1].line.id)!==String(e.line.id))segments.push({line:e.line,stations:[fromName,e.station.name]});
    else segments[segments.length-1].stations.push(e.station.name);
   }
-  const interchangeCount=segments.filter(s=>s.transfer).length+Math.max(0,new Set(segments.filter(s=>!s.transfer).map(s=>String(s.line.id))).size-1);
+  const interchangeCount=segments.filter((s,i)=>s.transfer||(i>0&&!s.transfer&&!segments[i-1].transfer&&String(s.line.id)!==String(segments[i-1].line.id))).length;
   out.innerHTML=`<div class="route-result"><div class="section-head"><h2>Journey route</h2><small>${path.length-1} hops · ${interchangeCount} interchange${interchangeCount===1?"":"s"}</small></div><p><b>${esc(from.name)}</b> → <b>${esc(to.name)}</b></p>${segments.map((seg,i)=>seg.transfer?`<div class="route-step"><span class="route-line" style="background:#64748b">Transfer</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[1])}</b></div><small>Walk between stations · approximately ${seg.minutes} minutes</small></div>`:`<div class="route-step"><span class="route-line" style="background:${esc(seg.line.color||"#2457d6")}">${esc(seg.line.name)}</span><div><b>${esc(seg.stations[0])}</b> → <b>${esc(seg.stations[seg.stations.length-1])}</b></div><small>${seg.stations.length-1} station hops</small></div>`).join("")}<p class="sub" style="margin-top:12px">Calculated from station-line sequences and explicit transfer links in your database.</p></div>`;
  }catch(e){console.error(e);out.innerHTML='<div class="empty">Could not calculate route. Check Supabase setup, table names, and read policies.</div>';}
 }
