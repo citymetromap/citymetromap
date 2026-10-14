@@ -91,6 +91,9 @@ h3{font-size:17px;margin:0}
 .station-list{border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .station{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:14px}
 .station:last-child{border-bottom:0}
+.station-number{display:inline-grid;place-items:center;width:28px;height:26px;margin-right:8px;border-radius:7px;background:var(--soft);color:var(--muted);font-size:12px}
+.station-count{font-size:10px;letter-spacing:.04em;color:var(--muted);margin-left:8px;font-weight:700}
+.station-direction{font-size:11px;color:var(--muted);text-align:right}
 .project{padding:18px;border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
 .badge{display:inline-block;font-size:11px;font-weight:700;border-radius:20px;padding:5px 8px;background:#eef2f7;color:#475467;margin-bottom:10px}
 .project .meta{color:var(--muted);font-size:13px;margin-top:7px}
@@ -227,19 +230,42 @@ function lineCard(l){
 document.getElementById('popularLines').innerHTML=lines.slice(0,6).map(lineCard).join('');
 document.getElementById('allLines').innerHTML=lines.map(lineCard).join('');
 
-function openLine(id){
+async function openLine(id){
  const l=lines.find(x=>x.id===id);
- document.getElementById('lineDetail').innerHTML=`
+ if(!l)return;
+ const detail=document.getElementById('lineDetail');
+ detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
   <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
   <div class="info-grid">
    <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
    <div class="info"><label>LENGTH</label><b>${l.km} km</b></div>
   </div>
-  <div class="section"><div class="section-head"><h2>Station list</h2><small>Dataset next</small></div>
-   <div class="empty">The complete station-by-station data will be connected here. This page structure is ready.</div>
+  <div class="section"><div class="section-head"><h2>Station list</h2><small>${l.id===1?'Rithala → Shaheed Sthal':'Coming next · one line at a time'}</small></div>
+   <div id="lineStationList" class="station-list"><div class="empty">Loading station sequence…</div></div>
   </div>`;
  showView('line');
+ if(l.id!==1){
+  document.getElementById('lineStationList').innerHTML='<div class="empty">We are connecting this line next. The Red Line station list is being completed first.</div>';
+  return;
+ }
+ const list=document.getElementById('lineStationList');
+ try{
+  const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',1).eq('direction','forward').order('sequence_no',{ascending:true});
+  if(stopsError)throw stopsError;
+  if(!stops||!stops.length)throw new Error('No Red Line station sequence found.');
+  const ids=stops.map(s=>s.station_id);
+  const {data:stationRows,error:stationError}=await metroDb.from('stations').select('id,name').in('id',ids);
+  if(stationError)throw stationError;
+  const byId=new Map((stationRows||[]).map(s=>[String(s.id),s.name]));
+  const ordered=stops.map(s=>({sequence:s.sequence_no,name:byId.get(String(s.station_id))})).filter(s=>s.name);
+  if(ordered.length!==stops.length)throw new Error('Some Red Line station names could not be loaded.');
+  if(ordered.length!==29)console.warn('Red Line expected 29 stations; loaded',ordered.length);
+  list.innerHTML=ordered.map((s,i)=>`<div class="station"><span><b class="station-number">${String(s.sequence).padStart(2,'0')}</b> ${esc(s.name)}${i===0?'<span class="station-count">START</span>':i===ordered.length-1?'<span class="station-count">END</span>':''}</span><span class="station-direction">${i===0?'Rithala':i===ordered.length-1?'Shaheed Sthal':''}</span></div>`).join('');
+ }catch(error){
+  console.error('Could not load Red Line station list:',error);
+  list.innerHTML='<div class="empty">Could not load the Red Line station list. Please check the station data connection.</div>';
+ }
 }
 function renderProjects(filter='all'){
  let arr=projects;
