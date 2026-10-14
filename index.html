@@ -196,8 +196,8 @@ const metroDb=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY
 const lines=[
  {id:1,name:"Red Line",from:"Rithala",to:"Shaheed Sthal",stations:29,km:"34.549",color:"#e33b32"},
  {id:2,name:"Yellow Line",from:"Samaypur Badli",to:"Millennium City Centre Gurugram",stations:37,km:"49.019",color:"#e5c400"},
- {id:3,name:"Blue Line",from:"Dwarka Sector 21",to:"Noida Electronic City",stations:50,km:"56.114",color:"#1769d2"},
- {id:4,name:"Blue Line — Vaishali Branch",from:"Yamuna Bank",to:"Vaishali",stations:8,km:"8.511",color:"#1769d2"},
+ {id:3,name:"Blue Line — Noida Route",from:"Dwarka Sector 21",to:"Noida Electronic City",stations:50,km:"56.114",color:"#1769d2"},
+ {id:4,name:"Blue Line — Vaishali Route",from:"Dwarka Sector 21",to:"Vaishali",stations:41,km:"—",color:"#1769d2"},
  {id:5,name:"Green Line",from:"Kirti Nagar / Inderlok",to:"Brig. Hoshiar Singh",stations:24,km:"28.781",color:"#1c9b59"},
  {id:6,name:"Violet Line",from:"Kashmere Gate",to:"Raja Nahar Singh",stations:34,km:"46.341",color:"#7a3fb0"},
  {id:7,name:"Pink Line",from:"Majlis Park",to:"Shiv Vihar",stations:38,km:"59.242",color:"#e85a91"},
@@ -237,10 +237,10 @@ async function openLine(id){
  const supported=[1,2,3,4,5].includes(l.id);
  detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
-  <div class="eyebrow">${l.id===3||l.id===4?'Blue Line':`Line ${l.id}`}</div><h1>${l.id===3||l.id===4?'Blue Line':l.name}</h1><p class="sub">${l.id===3||l.id===4?'Noida Link + Vaishali Link':`${l.from} → ${l.to}`}</p></div>
+  <div class="eyebrow">${l.id===3||l.id===4?'Blue Line':`Line ${l.id}`}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
   <div class="info-grid">
-   <div class="info"><label>${l.id===3||l.id===4?'NOIDA LINK STATIONS':'STATIONS'}</label><b>${l.id===4?50:l.stations}</b></div>
-   <div class="info"><label>${l.id===3||l.id===4?'NOIDA LINK LENGTH':'LENGTH'}</label><b>${l.id===4?'56.114':l.km} km</b></div>
+   <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
+   <div class="info"><label>ROUTE LENGTH</label><b>${l.km==='—'?'Not verified':l.km+' km'}</b></div>
   </div>
   <div class="section"><div class="section-head"><h2>Station list</h2><small>${supported?'Ordered station sequence':'Coming next · one line at a time'}</small></div>
    <div id="lineStationList" class="station-list"><div class="empty">Loading station sequence…</div></div>
@@ -265,8 +265,8 @@ async function openLine(id){
   const ordered=stops.map(s=>({sequence:s.sequence_no,name:byId.get(String(s.station_id))})).filter(s=>s.name);
   if(ordered.length!==stops.length)throw new Error('Some station names could not be loaded.');
   let branchHtml='';
-  if(l.id===3||l.id===4){
-   // Blue Line has two links: the Noida Link (line_id 3) and the Vaishali Link (line_id 4).
+  if(l.id===4){
+   // Vaishali route: travel from Dwarka Sector 21 along the shared Blue Line to Yamuna Bank, then follow the Vaishali branch.
    const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',4).eq('direction','forward').order('sequence_no',{ascending:true});
    if(branchError)throw branchError;
    if(!branchStops||!branchStops.length)throw new Error('No station sequence found for the Blue Line Vaishali Link.');
@@ -274,9 +274,13 @@ async function openLine(id){
    const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
    if(branchRowsError)throw branchRowsError;
    const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
-   const branch=branchStops.map(s=>branchNames.get(String(s.station_id))).filter(Boolean);
+   const branch=branchStops.map(s=>({id:String(s.station_id),name:branchNames.get(String(s.station_id))})).filter(s=>s.name);
    if(branch.length!==branchStops.length)throw new Error('Some Vaishali Link station names could not be loaded.');
-   branchHtml='<div class="section"><div class="section-head"><h2>Vaishali Link</h2><small>'+branch.length+' stations · 8.511 km</small></div><p class="sub">Yamuna Bank → Vaishali</p><div class="station-list">'+branch.map((name,i)=>'<div class="station"><span><b class="station-number">'+String(i+1).padStart(2,'0')+'</b> '+esc(name)+(i===0?'<span class="station-count">START · INTERCHANGE</span>':i===branch.length-1?'<span class="station-count">END</span>':'')+'</span></div>').join('')+'</div></div>';
+   const yamunaIndex=ordered.findIndex(s=>/yamuna bank/i.test(s.name));
+   if(yamunaIndex<0)throw new Error('Yamuna Bank was not found on the shared Blue Line route.');
+   const vaishaliRoute=ordered.slice(0,yamunaIndex+1).concat(branch.filter(s=>!(/yamuna bank/i.test(s.name))).map(s=>({name:s.name})));
+   ordered.splice(0,ordered.length,...vaishaliRoute);
+   if(ordered.length!==l.stations)console.warn('Vaishali route expected '+l.stations+' stations; loaded '+ordered.length+'.');
   }
   if(l.id===5){
    const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',5).eq('direction','ind erl ok_branch_forward').order('sequence_no',{ascending:true});
