@@ -151,10 +151,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
     <div class="section"><div class="grid" id="allLines"></div></div>
     <div class="section">
       <div class="section-head"><h2>Other NCR Metros</h2></div>
-      <div class="grid">
-        <button class="card"><div class="top"><b>Aqua Line</b><span class="arrow">›</span></div><p>Noida–Greater Noida · 21 stations</p></button>
-        <button class="card"><div class="top"><b>Rapid Metro</b><span class="arrow">›</span></div><p>Gurugram · 11 stations</p></button>
-      </div>
+      <div class="grid" id="otherNcrLines"></div>
     </div>
   </section>
 
@@ -205,6 +202,10 @@ const lines=[
  {id:9,name:"Grey Line",from:"Dwarka",to:"Dhansa Bus Stand",stations:4,km:"5.491",color:"#777b83"},
  {id:10,name:"Airport Express",from:"New Delhi",to:"Yashobhoomi Dwarka Sector 25",stations:7,km:"24.917",color:"#ef7f27"}
 ];
+const otherMetroLines=[
+ {id:12,name:"Aqua Line",from:"Noida Sector 51",to:"Depot Station",stations:21,km:"29.707",color:"#1f8a9e"},
+ {id:11,name:"Rapid Metro",from:"Sector 55-56",to:"Phase 3",stations:11,km:"11.7",color:"#4a8f65"}
+];
 
 const projects=[
  {id:"golden",title:"Delhi Aerocity – Tughlakabad",line:"Line 10 · Golden Line",status:"Priority corridor",km:"23.622 km",stations:15,desc:"New corridor connecting Delhi Aerocity with Tughlakabad through the southern part of Delhi.",st:["Delhi Aerocity","Mahipalpur","Vasant Kunj","Kishangarh Metro Station","Chhatarpur","Chhatarpur Mandir","IGNOU","Neb Sarai","Saket G Block","Ambedkar Nagar","Khanpur","Sangam Vihar – Tigri","Anandmayee Marg Jn","Tughlakabad Rly Colony","Tughlakabad Station"]},
@@ -229,12 +230,13 @@ function lineCard(l){
 }
 document.getElementById('popularLines').innerHTML=lines.slice(0,6).map(lineCard).join('');
 document.getElementById('allLines').innerHTML=lines.map(lineCard).join('');
+document.getElementById('otherNcrLines').innerHTML=otherMetroLines.map(lineCard).join('');
 
 async function openLine(id){
- const l=lines.find(x=>x.id===id);
+ const l=lines.find(x=>x.id===id)||otherMetroLines.find(x=>x.id===id);
  if(!l)return;
  const detail=document.getElementById('lineDetail');
- const supported=[1,2,3,4,5,6,7,8,9,10].includes(l.id);
+ const supported=[1,2,3,4,5,6,7,8,9,10,11,12].includes(l.id);
  detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
   <div class="eyebrow">${l.id===3||l.id===4?'Blue Line':`Line ${l.id}`}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
@@ -252,7 +254,7 @@ async function openLine(id){
   return;
  }
  // Red Line, Blue Line, Vaishali Branch, and Green Line main route use forward order; Yellow Line uses reverse order for its displayed direction.
- const direction=(l.id===2||l.id===10)?'reverse':'forward';
+ const direction=(l.id===2||l.id===10||l.id===11||l.id===12)?'reverse':'forward';
  const sequenceLineId=l.id===4?3:l.id;
  try{
   const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',sequenceLineId).eq('direction',direction).order('sequence_no',{ascending:true});
