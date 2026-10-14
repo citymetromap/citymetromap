@@ -234,7 +234,7 @@ async function openLine(id){
  const l=lines.find(x=>x.id===id);
  if(!l)return;
  const detail=document.getElementById('lineDetail');
- const supported=[1,2,3].includes(l.id);
+ const supported=[1,2,3,4].includes(l.id);
  detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
   <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
@@ -251,7 +251,7 @@ async function openLine(id){
   list.innerHTML='<div class="empty">This line will be connected next. We are adding the verified station sequences one line at a time.</div>';
   return;
  }
- // Red Line and Blue Line use forward order; Yellow Line uses reverse order for its displayed direction.
+ // Red Line, Blue Line, and the Vaishali Branch use forward order; Yellow Line uses reverse order for its displayed direction.
  const direction=l.id===2?'reverse':'forward';
  try{
   const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',l.id).eq('direction',direction).order('sequence_no',{ascending:true});
