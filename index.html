@@ -203,8 +203,8 @@ const lines=[
  {id:10,name:"Airport Express",from:"New Delhi",to:"Yashobhoomi Dwarka Sector 25",stations:7,km:"24.917",color:"#ef7f27"}
 ];
 const otherMetroLines=[
- {id:12,name:"Aqua Line",from:"Noida Sector 51",to:"Depot Station",stations:21,km:"29.707",color:"#1f8a9e"},
- {id:11,name:"Rapid Metro",from:"Sector 55-56",to:"Phase 3",stations:11,km:"11.7",color:"#4a8f65"}
+ {id:12,name:"Aqua Line",from:"Noida Sector 51",to:"Depot Station",stations:21,km:"—",color:"#1f8a9e"},
+ {id:11,name:"Rapid Metro",from:"Sector 55-56",to:"Phase 3",stations:11,km:"—",color:"#4a8f65"}
 ];
 
 const projects=[
@@ -254,7 +254,7 @@ async function openLine(id){
   return;
  }
  // Red Line, Blue Line, Vaishali Branch, and Green Line main route use forward order; Yellow Line uses reverse order for its displayed direction.
- const direction=(l.id===2||l.id===10||l.id===11||l.id===12)?'reverse':'forward';
+ const direction=(l.id===2||l.id===10)?'reverse':'forward';
  const sequenceLineId=l.id===4?3:l.id;
  try{
   const {data:stops,error:stopsError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',sequenceLineId).eq('direction',direction).order('sequence_no',{ascending:true});
