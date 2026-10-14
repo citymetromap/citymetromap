@@ -237,10 +237,10 @@ async function openLine(id){
  const supported=[1,2,3,4,5].includes(l.id);
  detail.innerHTML=`
   <div class="detail-head"><div class="line-swatch" style="background:${l.color};width:100px"></div>
-  <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.from} → ${l.to}</p></div>
+  <div class="eyebrow">Line ${l.id}</div><h1>${l.name}</h1><p class="sub">${l.id===3?'Noida Link + Vaishali Link':`${l.from} → ${l.to}`}</p></div>
   <div class="info-grid">
-   <div class="info"><label>STATIONS</label><b>${l.stations}</b></div>
-   <div class="info"><label>LENGTH</label><b>${l.km} km</b></div>
+   <div class="info"><label>${l.id===3?'NOIDA LINK STATIONS':'STATIONS'}</label><b>${l.stations}</b></div>
+   <div class="info"><label>${l.id===3?'NOIDA LINK LENGTH':'LENGTH'}</label><b>${l.km} km</b></div>
   </div>
   <div class="section"><div class="section-head"><h2>Station list</h2><small>${supported?'Ordered station sequence':'Coming next · one line at a time'}</small></div>
    <div id="lineStationList" class="station-list"><div class="empty">Loading station sequence…</div></div>
@@ -264,6 +264,19 @@ async function openLine(id){
   const ordered=stops.map(s=>({sequence:s.sequence_no,name:byId.get(String(s.station_id))})).filter(s=>s.name);
   if(ordered.length!==stops.length)throw new Error('Some station names could not be loaded.');
   let branchHtml='';
+  if(l.id===3){
+   // Blue Line has two links: the Noida Link (line_id 3) and the Vaishali Link (line_id 4).
+   const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',4).eq('direction','forward').order('sequence_no',{ascending:true});
+   if(branchError)throw branchError;
+   if(!branchStops||!branchStops.length)throw new Error('No station sequence found for the Blue Line Vaishali Link.');
+   const branchIds=branchStops.map(s=>s.station_id);
+   const {data:branchRows,error:branchRowsError}=await metroDb.from('stations').select('id,name').in('id',branchIds);
+   if(branchRowsError)throw branchRowsError;
+   const branchNames=new Map((branchRows||[]).map(s=>[String(s.id),s.name]));
+   const branch=branchStops.map(s=>branchNames.get(String(s.station_id))).filter(Boolean);
+   if(branch.length!==branchStops.length)throw new Error('Some Vaishali Link station names could not be loaded.');
+   branchHtml='<div class="section"><div class="section-head"><h2>Vaishali Link</h2><small>'+branch.length+' stations · 8.511 km</small></div><p class="sub">Yamuna Bank → Vaishali</p><div class="station-list">'+branch.map((name,i)=>'<div class="station"><span><b class="station-number">'+String(i+1).padStart(2,'0')+'</b> '+esc(name)+(i===0?'<span class="station-count">START · INTERCHANGE</span>':i===branch.length-1?'<span class="station-count">END</span>':'')+'</span></div>').join('')+'</div></div>';
+  }
   if(l.id===5){
    const {data:branchStops,error:branchError}=await metroDb.from('line_stops').select('station_id,sequence_no').eq('line_id',5).eq('direction','ind erl ok_branch_forward').order('sequence_no',{ascending:true});
    if(branchError)throw branchError;
