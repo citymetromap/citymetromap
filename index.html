@@ -71,7 +71,7 @@ h3{font-size:17px;margin:0}
 .suggestions{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 28px rgba(20,30,50,.12);z-index:30;max-height:240px;overflow:auto;display:none}
 .suggestions.show{display:block}
 .suggestion{display:block;width:100%;padding:12px 14px;border:0;border-bottom:1px solid var(--line);background:#fff;text-align:left;color:var(--text)}
-.suggestion:last-child{border-bottom:0}.suggestion:hover,.suggestion:focus{background:var(--blue-soft)}
+.suggestion:last-child{border-bottom:0}.suggestion:hover,.suggestion:focus,.suggestion.active{background:var(--blue-soft)}.suggestion-empty{cursor:default;color:var(--muted);font-size:13px}
 .route-button{margin-top:14px;width:100%;text-align:center;background:var(--text);color:#fff;border-color:var(--text)}
 .route-result{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:16px}
 .route-step{padding:10px 0;border-bottom:1px solid var(--line)}.route-step:last-child{border-bottom:0}
@@ -270,29 +270,73 @@ function searchAll(){
 
 function normStation(v){return (v||"").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+let stationCachePromise=null;
+async function loadStationCache(){
+ if(!stationCachePromise){
+  stationCachePromise=metroDb.from("stations").select("id,name,normalized_name").order("name").limit(1000)
+   .then(({data,error})=>{if(error)throw error;return data||[];})
+   .catch(error=>{stationCachePromise=null;throw error;});
+ }
+ return stationCachePromise;
+}
 async function stationHints(q){
- const qn=normStation(q), compact=qn.replace(/\\s+/g,"");
- // Match both spaced and unspaced spellings (e.g. "Janakpuri West" and "Janak Puri West").
- const {data,error}=await metroDb.from("stations").select("id,name,normalized_name").order("name").limit(1000);
- if(error)throw error;
- return (data||[]).filter(x=>{
-   const nameNorm=normStation(x.name), stored=normStation(x.normalized_name||"");
-   return nameNorm.includes(qn)||stored.includes(qn)||nameNorm.replace(/\\s+/g,"").includes(compact)||stored.replace(/\\s+/g,"").includes(compact);
- }).slice(0,10);
+ const qn=normStation(q), compact=qn.replace(/\s+/g,"");
+ const data=await loadStationCache();
+ return data.filter(x=>{
+  const nameNorm=normStation(x.name), stored=normStation(x.normalized_name||"");
+  const nameCompact=nameNorm.replace(/\s+/g,""), storedCompact=stored.replace(/\s+/g,"");
+  return nameNorm.startsWith(qn)||stored.startsWith(qn)||nameCompact.startsWith(compact)||storedCompact.startsWith(compact)||
+   nameNorm.includes(qn)||stored.includes(qn)||nameCompact.includes(compact)||storedCompact.includes(compact);
+ }).sort((a,b)=>{
+  const an=normStation(a.name),bn=normStation(b.name);
+  const ap=an.startsWith(qn)||an.replace(/\s+/g,"").startsWith(compact)?0:1;
+  const bp=bn.startsWith(qn)||bn.replace(/\s+/g,"").startsWith(compact)?0:1;
+  return ap-bp||a.name.localeCompare(b.name);
+ }).slice(0,8);
 }
 function attachHints(inputId,boxId){
- const input=document.getElementById(inputId),box=document.getElementById(boxId);let timer;
+ const input=document.getElementById(inputId),box=document.getElementById(boxId);
+ let timer=0,activeIndex=-1,requestVersion=0;
+ function close(){box.innerHTML="";box.classList.remove("show");activeIndex=-1;}
+ function choose(button){
+  if(!button||!button.dataset.id)return;
+  input.value=button.dataset.name;input.dataset.stationId=button.dataset.id;
+  close();input.dispatchEvent(new Event("change",{bubbles:true}));
+ }
+ function render(rows){
+  activeIndex=-1;
+  box.innerHTML=rows.length?rows.map(x=>`<button type="button" role="option" class="suggestion" data-id="${esc(x.id)}" data-name="${esc(x.name)}">${esc(x.name)}</button>`).join(""):'<div class="suggestion suggestion-empty">No matching station</div>';
+  box.classList.add("show");
+ }
  input.addEventListener("input",()=>{
-  clearTimeout(timer);input.dataset.stationId="";box.innerHTML="";box.classList.remove("show");
-  if(input.value.trim().length<2)return;
-  timer=setTimeout(async()=>{try{
-   const rows=await stationHints(input.value.trim());
-   box.innerHTML=rows.length?rows.map(x=>`<button type="button" class="suggestion" data-id="${esc(x.id)}" data-name="${esc(x.name)}">${esc(x.name)}</button>`).join(""):'<div class="suggestion">No matching station</div>';
-   box.classList.add("show");
-  }catch(e){console.error(e);box.innerHTML='<div class="suggestion">Could not load stations. Check that SQL setup is complete.</div>';box.classList.add("show");}},150);
+  clearTimeout(timer);input.dataset.stationId="";const value=input.value.trim(),version=++requestVersion;
+  close();if(value.length<2)return;
+  timer=setTimeout(async()=>{
+   try{
+    const rows=await stationHints(value);
+    if(version!==requestVersion||input.value.trim()!==value)return;
+    render(rows);
+   }catch(error){
+    console.error("MetroGuide station suggestions failed:",error);
+    if(version!==requestVersion)return;
+    box.innerHTML='<div class="suggestion suggestion-empty">Station search is temporarily unavailable. Please try again.</div>';
+    box.classList.add("show");
+   }
+  },100);
  });
- box.addEventListener("click",e=>{const b=e.target.closest("button[data-id]");if(!b)return;input.value=b.dataset.name;input.dataset.stationId=b.dataset.id;box.innerHTML="";box.classList.remove("show");});
- document.addEventListener("click",e=>{if(e.target!==input&&!box.contains(e.target))box.classList.remove("show");});
+ input.addEventListener("focus",()=>{
+  if(input.value.trim().length>=2)input.dispatchEvent(new Event("input",{bubbles:true}));
+ });
+ input.addEventListener("keydown",e=>{
+  const options=[...box.querySelectorAll("button[data-id]")];
+  if(e.key==="ArrowDown"&&box.classList.contains("show")&&options.length){e.preventDefault();activeIndex=Math.min(activeIndex+1,options.length-1);options.forEach((b,i)=>b.classList.toggle("active",i===activeIndex));options[activeIndex].scrollIntoView({block:"nearest"});}
+  else if(e.key==="ArrowUp"&&box.classList.contains("show")&&options.length){e.preventDefault();activeIndex=Math.max(activeIndex-1,0);options.forEach((b,i)=>b.classList.toggle("active",i===activeIndex));options[activeIndex].scrollIntoView({block:"nearest"});}
+  else if(e.key==="Enter"&&box.classList.contains("show")&&activeIndex>=0){e.preventDefault();choose(options[activeIndex]);}
+  else if(e.key==="Escape")close();
+ });
+ box.addEventListener("mousedown",e=>{if(e.target.closest("button[data-id]"))e.preventDefault();});
+ box.addEventListener("click",e=>choose(e.target.closest("button[data-id]")));
+ document.addEventListener("click",e=>{if(!input.contains(e.target)&&!box.contains(e.target))close();});
 }
 async function resolveStation(input){
  if(input.dataset.stationId){return {id:input.dataset.stationId,name:input.value};}
