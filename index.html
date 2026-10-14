@@ -44,7 +44,8 @@
     align-items:center;
   }
   .header-inner{
-    width:min(1180px,calc(100% - 32px));
+    width:calc(100% - 48px);
+    max-width:none;
     margin:auto;
     display:flex;
     align-items:center;
@@ -68,7 +69,8 @@
     font-size:13px;color:var(--muted);
   }
   main{
-    width:min(1080px,calc(100% - 32px));
+    width:calc(100% - 48px);
+    max-width:none;
     margin:0 auto;
     padding:64px 0 72px;
   }
@@ -239,7 +241,7 @@
     </div>
 
     <div class="cities" id="popularCities">
-      <button class="city" data-search="Delhi Delhi NCR Delhi Metro" onclick="location.href='./delhi/index.html'">
+      <button class="city" data-search="Delhi Delhi NCR Delhi Metro" onclick="location.href='./delhi/delhi-metro.html'">
         <div class="city-top"><span class="city-name">Delhi NCR</span><span class="arrow">›</span></div>
         <div class="city-meta">Delhi Metro</div>
       </button>
