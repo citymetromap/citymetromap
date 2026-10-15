@@ -24,6 +24,20 @@ input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;
 .checkline{display:flex;gap:10px;align-items:flex-start;color:#475467;font-size:13px;line-height:1.5}.checkline input{width:17px;height:17px;min-width:17px;margin:1px 0 0;accent-color:var(--blue)}
 .primary{width:100%;height:50px;border:0;border-radius:11px;background:#151922;color:#fff;font-weight:700;margin-top:20px}.primary:disabled{opacity:.6;cursor:wait}
 .result{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px}.result-label{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}.fare{font-size:42px;font-weight:800;letter-spacing:-1.5px;margin:6px 0}.result-sub{font-size:13px;color:var(--muted);line-height:1.5}.route{margin:20px 0 0;padding:0;list-style:none}.route li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.route li:last-child{border-bottom:0}.dot{width:10px;height:10px;border:2px solid var(--blue);border-radius:50%;margin-top:3px;flex-shrink:0}.route small{display:block;color:var(--muted);margin-top:3px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.fact{background:white;border:1px solid var(--line);border-radius:10px;padding:12px}.fact small{display:block;color:var(--muted);font-size:11px}.fact b{display:block;margin-top:5px;font-size:15px}.notice{margin-top:14px;color:var(--muted);font-size:11px;line-height:1.55}.error{margin-top:14px;padding:12px;border-radius:9px;background:#fff1f0;color:#a12820;font-size:13px;line-height:1.5}.hidden{display:none!important}.loading{opacity:.7}
+
+.fare-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+.fare-option{border:1px solid var(--line);border-radius:13px;padding:16px;background:#fff;min-width:0}
+.fare-option.featured{background:#f0f2f6;border-color:#e4e7ec}
+.fare-option small{display:block;color:var(--muted);font-size:12px;line-height:1.45}
+.fare-option strong{display:block;font-size:27px;letter-spacing:-.6px;margin:5px 0}
+.fare-option .saving{font-size:11px;color:var(--green);font-weight:700}
+.discount-guide{margin-top:28px;border:1px solid var(--line);border-radius:15px;padding:20px}
+.discount-guide h2{font-size:20px;margin:0 0 8px}
+.discount-guide p{color:var(--muted);font-size:14px;line-height:1.6;margin:0 0 14px}
+.discount-guide ul{padding-left:20px;margin:0;color:#344054;font-size:14px;line-height:1.7}
+.discount-guide li{margin:7px 0}
+.discount-times{background:var(--soft);border-radius:10px;padding:12px 14px;margin-top:12px;font-size:13px;line-height:1.65;color:#475467}
+@media(max-width:540px){.fare-options{grid-template-columns:1fr 1fr;gap:8px}.fare-option{padding:12px}.fare-option strong{font-size:23px}.discount-guide{padding:16px}}
 .fare-table{margin-top:26px}.fare-table h2{font-size:18px;margin-bottom:12px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}th{background:var(--soft);color:#475467;font-size:11px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}footer{border-top:1px solid var(--line);color:#98a2b3;font-size:12px;padding:22px;text-align:center}
 @media(max-width:540px){.site-logo{width:185px;max-height:48px}.header-inner{padding:0 12px}.brand-copy strong{font-size:17px}main{padding:25px 12px 44px}.panel{padding:17px}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}.radio-row{flex-direction:column}.fare{font-size:38px}.hero h1{letter-spacing:-1px}}
 </style>
@@ -59,6 +73,18 @@ input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;
 <div class="table-wrap"><table><thead><tr><th>Estimated distance</th><th>Normal day</th><th>Sunday / national holiday</th></tr></thead><tbody id="fareSlabs"><tr><td colspan="3">Loading fare slabs from Supabase…</td></tr></tbody></table></div>
 <p class="notice">Standard Delhi Metro fare chart revised effective 25 August 2025. The calculator uses the normal-day standard fare; Sunday and holiday fares can differ.</p>
 </section>
+<section class="discount-guide">
+<h2>Smart Card &amp; off-peak discounts</h2>
+<p>Save on eligible Delhi Metro journeys with a Smart Card. Discounts are applied automatically by the fare system.</p>
+<ul>
+<li><strong>Smart Card:</strong> approximately 10% off the normal token fare on every journey.</li>
+<li><strong>Sunday / national holiday:</strong> a reduced base fare applies; Smart Card journeys also receive the 10% Smart Card discount.</li>
+<li><strong>Off-peak Smart Card:</strong> an additional 10% discount applies during eligible off-peak periods on weekdays, giving an approximate total discount of 20% compared with the token fare.</li>
+</ul>
+<div class="discount-times"><strong>Off-peak periods (Monday–Saturday, excluding national holidays)</strong><br>From start of service until 8:00 AM<br>12:00 PM to 5:00 PM<br>9:00 PM until end of service</div>
+<p style="margin:14px 0 0">Fare values are rounded to the nearest rupee for estimation. Actual fare may vary by route, fare rules and line (especially Airport Express). Confirm the final fare using the <a href="https://delhimetrorail.com/" target="_blank" rel="noopener">official DMRC journey planner</a>.</p>
+</section>
+<section class="fare-table">
 </main>
 <footer>MetroGuide · Find. Route. Travel.</footer>
 <script>
@@ -125,12 +151,24 @@ function calculate(e){
  if(!fareSlabs.length){$("formError").textContent="Fare data could not be loaded from Supabase. Please refresh and try again.";$("formError").classList.remove("hidden");return}
  const route=findShortestRoute(fromId,toId);if(!route){$("formError").textContent="No connected route was found in the current station/line data.";$("formError").classList.remove("hidden");return}
  const holiday=false,slab=getSlab(route.km);if(!slab){$("formError").textContent="Could not match the route distance to a fare slab.";$("formError").classList.remove("hidden");return}
- const type="token";
  const fare=Number(slab.weekday_token_fare);
+ const weekdaySmart=Math.round(fare*0.9);
+ const sundayFare=Number(slab.holiday_token_fare);
+ const sundaySmart=Math.round(sundayFare*0.9);
+ const offPeakSmart=Math.round(fare*0.8);
  const orange=route.routeLines.some(n=>/airport express|orange line/i.test(n));
  const fmt=route.km<10?route.km.toFixed(1):route.km.toFixed(0);
  const hops=route.path.length-1;
- $("resultBox").classList.remove("hidden");$("resultBox").innerHTML='<div class="result-label">Estimated one-way fare</div><div class="fare">'+money(fare)+'</div><div class="result-sub">'+"Standard weekday fare estimate · Token / QR equivalent"+'</div><div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="notice">*Approximate straight-line distances between consecutive stations, summed along the selected database route. Actual track distance and fare may differ.</div>';
+ $("resultBox").classList.remove("hidden");$("resultBox").innerHTML='<div class="result-label">Estimated one-way fare</div><div class="fare">'+money(fare)+'</div><div class="result-sub">'+"Standard weekday fare estimate · Token / QR equivalent"+'</div><div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="result-label">Estimated one-way fares</div>
+<div class="result-sub">Indicative fare options for this journey. Choose the applicable fare type when travelling.</div>
+<div class="fare-options">
+<div class="fare-option"><small>Token / QR · Mon–Sat</small><strong>${money(fare)}</strong><small>Standard weekday fare</small></div>
+<div class="fare-option featured"><small>Smart card · Mon–Sat</small><strong>${money(weekdaySmart)}</strong><small class="saving">Save ${money(fare-weekdaySmart)} vs token</small><small>10% smart-card discount</small></div>
+<div class="fare-option"><small>Token · Sunday / national holiday</small><strong>${money(sundayFare)}</strong><small>Concessional fare</small></div>
+<div class="fare-option"><small>Smart card · Sunday / holiday</small><strong>${money(sundaySmart)}</strong><small>Sunday fare + 10% smart-card discount</small></div>
+<div class="fare-option featured"><small>Off-peak smart card · Mon–Sat</small><strong>${money(offPeakSmart)}</strong><small class="saving">Save ${money(fare-offPeakSmart)} vs token</small><small>Approx. 20% total discount</small></div>
+</div>
+<div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="notice">*Approximate straight-line distances between consecutive stations, summed along the selected database route. Actual track distance and fare may differ.</div>';
 }
 $("fareForm").addEventListener("submit",calculate);
 loadData().catch(error=>{console.error("Fare page Supabase load failed",error);$("fareSlabs").innerHTML='<tr><td colspan="3">Could not load fare data. Check Supabase read permissions and refresh.</td></tr>';$("formError").textContent="Could not connect to the citymetromap Supabase project. Please refresh or try again later.";$("formError").classList.remove("hidden")});
