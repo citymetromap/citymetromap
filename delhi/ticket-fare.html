@@ -14,7 +14,7 @@ header{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:
 .brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}.mark{width:34px;height:34px;border-radius:10px;background:#1d1d1d;color:white;display:grid;place-items:center;font-weight:800}.brand-copy{display:flex;flex-direction:column;gap:2px}.brand-copy strong{font-size:19px;letter-spacing:-.4px}.brand-copy small{font-size:11px;color:var(--muted)}
 .back{border:1px solid var(--line);background:white;border-radius:9px;padding:9px 12px;color:#475467;text-decoration:none;font-size:13px}
 main{width:100%;padding:32px 24px 64px;margin:auto}.hero{padding:16px 0 26px}.eyebrow{text-transform:uppercase;letter-spacing:.12em;color:var(--blue);font-size:11px;font-weight:800}.hero h1{font-size:clamp(32px,5vw,46px);letter-spacing:-1.5px;line-height:1.1;margin:10px 0}.sub{color:var(--muted);font-size:15px;margin:0;line-height:1.6}
-.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:18px;align-items:start}
+.layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;align-items:start}
 .panel{border:1px solid var(--line);border-radius:16px;padding:22px;background:#fff}.panel h2{font-size:19px;margin:0 0 7px;letter-spacing:-.4px}.hint{font-size:13px;color:var(--muted);margin:0 0 20px;line-height:1.5}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{min-width:0;position:relative}.field.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:700;color:#475467;margin:0 0 8px}
 input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;padding:0 13px;background:#fff;color:var(--text);outline:none}input:focus,select:focus{border-color:#9eb5ef;box-shadow:0 0 0 3px var(--blueSoft)}
@@ -24,7 +24,7 @@ input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;
 .primary{width:100%;height:50px;border:0;border-radius:11px;background:#151922;color:#fff;font-weight:700;margin-top:20px}.primary:disabled{opacity:.6;cursor:wait}
 .result{background:var(--soft);border:1px solid var(--line);border-radius:14px;padding:20px}.result-label{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}.fare{font-size:42px;font-weight:800;letter-spacing:-1.5px;margin:6px 0}.result-sub{font-size:13px;color:var(--muted);line-height:1.5}.route{margin:20px 0 0;padding:0;list-style:none}.route li{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:13px}.route li:last-child{border-bottom:0}.dot{width:10px;height:10px;border:2px solid var(--blue);border-radius:50%;margin-top:3px;flex-shrink:0}.route small{display:block;color:var(--muted);margin-top:3px}.facts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}.fact{background:white;border:1px solid var(--line);border-radius:10px;padding:12px}.fact small{display:block;color:var(--muted);font-size:11px}.fact b{display:block;margin-top:5px;font-size:15px}.notice{margin-top:14px;color:var(--muted);font-size:11px;line-height:1.55}.error{margin-top:14px;padding:12px;border-radius:9px;background:#fff1f0;color:#a12820;font-size:13px;line-height:1.5}.hidden{display:none!important}.loading{opacity:.7}
 .fare-table{margin-top:26px}.fare-table h2{font-size:18px;margin-bottom:12px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line)}th{background:var(--soft);color:#475467;font-size:11px;text-transform:uppercase;letter-spacing:.04em}tr:last-child td{border-bottom:0}footer{border-top:1px solid var(--line);color:#98a2b3;font-size:12px;padding:22px;text-align:center}
-@media(max-width:850px){.layout{grid-template-columns:1fr}.result-panel{order:-1}}@media(max-width:540px){.header-inner{padding:0 12px}.brand-copy strong{font-size:17px}main{padding:25px 12px 44px}.panel{padding:17px}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}.radio-row{flex-direction:column}.fare{font-size:38px}.hero h1{letter-spacing:-1px}}
+@media(max-width:540px){.header-inner{padding:0 12px}.brand-copy strong{font-size:17px}main{padding:25px 12px 44px}.panel{padding:17px}.fields{grid-template-columns:1fr}.field.full{grid-column:auto}.radio-row{flex-direction:column}.fare{font-size:38px}.hero h1{letter-spacing:-1px}}
 </style>
 </head>
 <body>
@@ -33,7 +33,7 @@ input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;
 <a class="back" href="delhi-metro.html">‹ Back to Delhi NCR</a>
 </div></header>
 <main>
-<section class="hero"><div class="eyebrow">Delhi NCR · Journey tools</div><h1>Ticket Fare</h1><p class="sub">Estimate your Delhi Metro fare by selecting your starting station, destination and ticket options.</p></section>
+<section class="hero"><div class="eyebrow">Delhi NCR · Journey tools</div><h1>Ticket Fare</h1><p class="sub">Calculate an estimated Delhi Metro fare by selecting your starting and destination stations.</p></section>
 <div class="layout">
 <section class="panel">
 <h2>Plan your fare</h2><p class="hint">Station names are loaded from the MetroGuide Supabase database.</p>
@@ -41,30 +41,21 @@ input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;
 <div class="fields">
 <div class="field"><label for="fromStation">FROM STATION *</label><input id="fromStation" autocomplete="off" placeholder="Search starting station" required aria-label="Starting station"><div id="fromHints" class="suggestions" role="listbox"></div></div>
 <div class="field"><label for="toStation">TO STATION *</label><input id="toStation" autocomplete="off" placeholder="Search destination station" required aria-label="Destination station"><div id="toHints" class="suggestions" role="listbox"></div></div>
-<div class="field"><label for="travelDate">TRAVEL DATE *</label><input id="travelDate" type="date" required></div>
-<div class="field"><label for="travelTime">TRAVEL TIME (OPTIONAL)</label><select id="travelTime"><option value="peak">Peak / regular hours</option><option value="offpeak">Off-peak hours (Mon–Sat)</option></select></div>
-<div class="field full"><label>TICKET TYPE *</label><div class="radio-row">
-<label class="choice"><input type="radio" name="ticketType" value="token" checked><span><b>Token / QR ticket</b><small>Standard single-journey fare</small></span></label>
-<label class="choice"><input type="radio" name="ticketType" value="smart"><span><b>Smart card</b><small>Estimated 10% discount</small></span></label>
-</div></div>
-<div class="field full"><label class="checkline"><input id="specialHoliday" type="checkbox"><span>Apply Sunday / national-holiday fare (tick for a gazetted national holiday not detected automatically).</span></label></div>
+
+
+
+
 </div>
 <button class="primary" id="calculateButton" type="submit">CALCULATE FARE</button>
 <div id="formError" class="error hidden" role="alert"></div>
 </form>
 </section>
-<aside class="panel result-panel">
-<h2>Your journey estimate</h2><p class="hint">Fare and route details appear here after calculation.</p>
-<div id="resultBox" class="result">
-<div class="result-label">Estimated one-way fare</div><div class="fare">—</div><div class="result-sub">Choose two stations to calculate your fare.</div>
-</div>
-<div class="notice">Distance is estimated from station coordinates along the database route, not from DMRC's official track-distance data. The displayed fare is indicative; confirm the exact fare in the official DMRC journey planner, especially for Airport Express journeys.</div>
-</aside>
+
 </div>
 <section class="fare-table">
 <h2>Published fare slabs</h2>
 <div class="table-wrap"><table><thead><tr><th>Estimated distance</th><th>Normal day</th><th>Sunday / national holiday</th></tr></thead><tbody id="fareSlabs"><tr><td colspan="3">Loading fare slabs from Supabase…</td></tr></tbody></table></div>
-<p class="notice">Standard Delhi Metro fare chart revised effective 25 August 2025. Smart-card discounts and off-peak concessions are estimates and may be rounded differently at the gate.</p>
+<p class="notice">Standard Delhi Metro fare chart revised effective 25 August 2025. The calculator uses the normal-day standard fare; Sunday and holiday fares can differ.</p>
 </section>
 </main>
 <footer>MetroGuide · Find. Route. Travel.</footer>
@@ -126,24 +117,20 @@ function getSlab(km){return fareSlabs.find(s=>km>=Number(s.min_distance_km)&&(s.
 function money(n){return "₹"+Math.round(n)}
 function calculate(e){
  e.preventDefault();$("formError").classList.add("hidden");
- const fromId=$("fromStation").dataset.stationId,toId=$("toStation").dataset.stationId,date=$("travelDate").value;
+ const fromId=$("fromStation").dataset.stationId,toId=$("toStation").dataset.stationId;
  if(!fromId||!toId){$("formError").textContent="Please select both stations from the suggestion list so the station IDs are verified."; $("formError").classList.remove("hidden");return}
  if(fromId===toId){$("formError").textContent="Starting and destination stations must be different.";$("formError").classList.remove("hidden");return}
- if(!date){$("formError").textContent="Please select your travel date.";$("formError").classList.remove("hidden");return}
  if(!fareSlabs.length){$("formError").textContent="Fare data could not be loaded from Supabase. Please refresh and try again.";$("formError").classList.remove("hidden");return}
  const route=findShortestRoute(fromId,toId);if(!route){$("formError").textContent="No connected route was found in the current station/line data.";$("formError").classList.remove("hidden");return}
- const holiday=$("specialHoliday").checked||isHoliday(date),slab=getSlab(route.km);if(!slab){$("formError").textContent="Could not match the route distance to a fare slab.";$("formError").classList.remove("hidden");return}
- const type=document.querySelector('input[name="ticketType"]:checked').value;
- let fare=holiday?Number(slab.holiday_token_fare):Number(slab.weekday_token_fare);
- if(type==="smart")fare=Math.round(fare*(1-Number(slab.smart_card_discount_percent||10)/100));
- const offpeak=$("travelTime").value==="offpeak"&&!holiday&&type==="smart"&&new Date(date+"T12:00:00").getDay()!==0;
- if(offpeak)fare=Math.round(fare*.9);
+ const holiday=false,slab=getSlab(route.km);if(!slab){$("formError").textContent="Could not match the route distance to a fare slab.";$("formError").classList.remove("hidden");return}
+ const type="token";
+ const fare=Number(slab.weekday_token_fare);
  const orange=route.routeLines.some(n=>/airport express|orange line/i.test(n));
  const fmt=route.km<10?route.km.toFixed(1):route.km.toFixed(0);
  const hops=route.path.length-1;
- $("resultBox").innerHTML='<div class="result-label">Estimated one-way fare</div><div class="fare">'+money(fare)+'</div><div class="result-sub">'+(holiday?"Sunday / holiday tariff":"Normal-day tariff")+' · '+(type==="smart"?"Smart card":"Token / QR ticket")+(offpeak?" · Off-peak concession applied":"")+'</div><div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="notice">*Approximate straight-line distances between consecutive stations, summed along the selected database route. Actual track distance and fare may differ.</div>';
+ $("resultBox").innerHTML='<div class="result-label">Estimated one-way fare</div><div class="fare">'+money(fare)+'</div><div class="result-sub">'+"Standard weekday fare estimate · Token / QR equivalent"+'</div><div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="notice">*Approximate straight-line distances between consecutive stations, summed along the selected database route. Actual track distance and fare may differ.</div>';
 }
-$("travelDate").value=localISODate();$("fareForm").addEventListener("submit",calculate);
+$("fareForm").addEventListener("submit",calculate);
 loadData().catch(error=>{console.error("Fare page Supabase load failed",error);$("fareSlabs").innerHTML='<tr><td colspan="3">Could not load fare data. Check Supabase read permissions and refresh.</td></tr>';$("formError").textContent="Could not connect to the citymetromap Supabase project. Please refresh or try again later.";$("formError").classList.remove("hidden")});
 </script>
 </body>
