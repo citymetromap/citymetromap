@@ -48,6 +48,7 @@ input,select{width:100%;height:48px;border:1px solid #d9dee7;border-radius:10px;
 </div>
 <button class="primary" id="calculateButton" type="submit">CALCULATE FARE</button>
 <div id="formError" class="error hidden" role="alert"></div>
+<div id="resultBox" class="result hidden" aria-live="polite"></div>
 </form>
 </section>
 
@@ -116,7 +117,7 @@ function findShortestRoute(fromId,toId){
 function getSlab(km){return fareSlabs.find(s=>km>=Number(s.min_distance_km)&&(s.max_distance_km==null||km<=Number(s.max_distance_km)))||fareSlabs[fareSlabs.length-1]}
 function money(n){return "₹"+Math.round(n)}
 function calculate(e){
- e.preventDefault();$("formError").classList.add("hidden");
+ e.preventDefault();$("formError").classList.add("hidden");$("resultBox").classList.add("hidden");
  const fromId=$("fromStation").dataset.stationId,toId=$("toStation").dataset.stationId;
  if(!fromId||!toId){$("formError").textContent="Please select both stations from the suggestion list so the station IDs are verified."; $("formError").classList.remove("hidden");return}
  if(fromId===toId){$("formError").textContent="Starting and destination stations must be different.";$("formError").classList.remove("hidden");return}
@@ -128,7 +129,7 @@ function calculate(e){
  const orange=route.routeLines.some(n=>/airport express|orange line/i.test(n));
  const fmt=route.km<10?route.km.toFixed(1):route.km.toFixed(0);
  const hops=route.path.length-1;
- $("resultBox").innerHTML='<div class="result-label">Estimated one-way fare</div><div class="fare">'+money(fare)+'</div><div class="result-sub">'+"Standard weekday fare estimate · Token / QR equivalent"+'</div><div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="notice">*Approximate straight-line distances between consecutive stations, summed along the selected database route. Actual track distance and fare may differ.</div>';
+ $("resultBox").classList.remove("hidden");$("resultBox").innerHTML='<div class="result-label">Estimated one-way fare</div><div class="fare">'+money(fare)+'</div><div class="result-sub">'+"Standard weekday fare estimate · Token / QR equivalent"+'</div><div class="facts"><div class="fact"><small>Approx. route distance</small><b>'+fmt+' km*</b></div><div class="fact"><small>Station-to-station hops</small><b>'+hops+'</b></div><div class="fact"><small>Line changes</small><b>'+route.changes+'</b></div><div class="fact"><small>Fare slab</small><b>'+(slab.max_distance_km==null?'Over '+slab.min_distance_km:slab.min_distance_km+'–'+slab.max_distance_km)+' km</b></div></div><ul class="route">'+route.path.map((p,i)=>'<li><span class="dot"></span><span>'+esc(p.station?.name||"Station")+(i===0?'<small>Starting station</small>':i===route.path.length-1?'<small>Destination station</small>':'')+'</span></li>').join("")+'</ul>'+(orange?'<div class="error">This route includes Airport Express. Its separate tariff may apply; this standard fare estimate may not be accurate.</div>':'')+'<div class="notice">*Approximate straight-line distances between consecutive stations, summed along the selected database route. Actual track distance and fare may differ.</div>';
 }
 $("fareForm").addEventListener("submit",calculate);
 loadData().catch(error=>{console.error("Fare page Supabase load failed",error);$("fareSlabs").innerHTML='<tr><td colspan="3">Could not load fare data. Check Supabase read permissions and refresh.</td></tr>';$("formError").textContent="Could not connect to the citymetromap Supabase project. Please refresh or try again later.";$("formError").classList.remove("hidden")});
