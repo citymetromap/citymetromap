@@ -40,7 +40,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
 @media(max-width:760px){header{height:64px}.header-inner{padding:0 12px}.site-logo{width:175px;max-height:48px}.header-actions{gap:6px}.explore-pill{padding:8px 9px}.explore-dropdown{width:190px}.lang-toggle button{padding:7px 8px}main{padding:16px 12px 48px}.map-frame{height:70vh;min-height:500px}.lines{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.site-logo{width:150px}.explore-pill{gap:5px;padding:7px}.lang-toggle button{padding:6px;font-size:12px}.lines{grid-template-columns:1fr}.map-frame{min-height:440px}}
 
-#metroVectorMap{width:4000px;height:3552px}#metroVectorMap text{stroke:none;paint-order:normal}#metroVectorMap text.h{stroke:#fff;stroke-width:6px;stroke-linejoin:round}
+#mapCanvas{will-change:auto!important;transform:none!important;display:block!important}#metroVectorMap{position:absolute;inset:0;width:100%!important;height:100%!important;max-width:none;text-rendering:geometricPrecision;shape-rendering:geometricPrecision}#metroVectorMap text{stroke:none;paint-order:normal}#metroVectorMap text.h{stroke:#fff;stroke-width:6px;stroke-linejoin:round}
 </style>
 <link rel="manifest" href="../manifest.json">
 </head>
@@ -1028,17 +1028,21 @@ observer.observe(document.body,{childList:true,subtree:true});
 (function(){
  const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),svg=document.getElementById('metroVectorMap'),level=document.getElementById('mapZoomLevel');
  if(!viewer||!canvas||!svg)return;
- let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
- const minScale=.1,maxScale=14;
- function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';svg.classList.toggle('labels-all',scale>=1.15);}
- function reset(){scale=Math.min((viewer.clientWidth||1200)/4000,(viewer.clientHeight||650)/3552)*0.98;x=0;y=0;render();}
- function zoom(factor,cx,cy){const r=viewer.getBoundingClientRect();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();}
- document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));document.getElementById('mapReset').addEventListener('click',reset);
+ const MW=9750,MH=8657,MINW=260;
+ let vb={x:0,y:0,w:MW,h:MH},fitW=MW,dragging=false,sx=0,sy=0,ox=0,oy=0;
+ const ptrs=new Map();let pinch=0;
+ function dims(){return [viewer.clientWidth||1200,viewer.clientHeight||650];}
+ function render(){const [vw,vh]=dims();vb.h=vb.w*vh/vw;svg.setAttribute('viewBox',vb.x.toFixed(2)+' '+vb.y.toFixed(2)+' '+vb.w.toFixed(2)+' '+vb.h.toFixed(2));level.textContent=Math.round(fitW/vb.w*100)+'%';}
+ function reset(){const [vw,vh]=dims();vb.w=Math.max(MW,MH*vw/vh)*1.02;vb.h=vb.w*vh/vw;fitW=vb.w;vb.x=(MW-vb.w)/2;vb.y=(MH-vb.h)/2;render();}
+ function zoom(f,cx,cy){const r=viewer.getBoundingClientRect(),[vw,vh]=dims();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const nw=Math.max(MINW,Math.min(fitW*1.5,vb.w/f)),k=nw/vb.w;const wx=vb.x+cx/vw*vb.w,wy=vb.y+cy/vh*vb.h;vb.w=nw;vb.h=nw*vh/vw;vb.x=wx-cx/vw*vb.w;vb.y=wy-cy/vh*vb.h;render();}
+ document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.4));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(1/1.4));document.getElementById('mapReset').addEventListener('click',reset);
  document.getElementById('mapFullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await viewer.requestFullscreen();else await document.exitFullscreen();}catch(e){}});
- viewer.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.12:.89,e.clientX,e.clientY);},{passive:false});
- viewer.addEventListener('pointerdown',e=>{if(e.target.closest('.map-controls'))return;dragging=true;startX=e.clientX;startY=e.clientY;originX=x;originY=y;canvas.classList.add('dragging');viewer.setPointerCapture(e.pointerId);});
- viewer.addEventListener('pointermove',e=>{if(dragging){x=originX+e.clientX-startX;y=originY+e.clientY-startY;render();}});
- function end(){dragging=false;canvas.classList.remove('dragging');}viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
+ viewer.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.18:1/1.18,e.clientX,e.clientY);},{passive:false});
+ viewer.addEventListener('pointerdown',e=>{if(e.target.closest('.map-controls'))return;ptrs.set(e.pointerId,[e.clientX,e.clientY]);dragging=ptrs.size===1;sx=e.clientX;sy=e.clientY;ox=vb.x;oy=vb.y;pinch=0;canvas.classList.add('dragging');viewer.setPointerCapture(e.pointerId);});
+ viewer.addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,[e.clientX,e.clientY]);const [vw]=dims();
+  if(ptrs.size===2){const [p,q]=[...ptrs.values()],d=Math.hypot(p[0]-q[0],p[1]-q[1]);if(pinch)zoom(d/pinch,(p[0]+q[0])/2,(p[1]+q[1])/2);pinch=d;return;}
+  if(dragging){const k=vb.w/vw;vb.x=ox-(e.clientX-sx)*k;vb.y=oy-(e.clientY-sy)*k;render();}});
+ function end(e){ptrs.delete(e.pointerId);pinch=0;dragging=false;if(!ptrs.size)canvas.classList.remove('dragging');}viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
  reset();
  window.addEventListener('resize',reset);
 })();
