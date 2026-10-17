@@ -75,7 +75,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
   </div>
   <div class="map-viewer" id="mapViewer" aria-label="Interactive Delhi Metro route map. Drag to pan and use plus or minus to zoom.">
     <div class="map-fullscreen-title">Delhi Metro Route Map 2026</div>
-    <div class="map-canvas" id="mapCanvas"><img class="map-image" id="metroMapImage" src="https://yometro.com/images/maps/delhi-metro-route-map.jpg" alt="Delhi Metro network route map with colour-coded metro lines and station names" draggable="false"></div>
+    <div class="map-canvas" id="mapCanvas"><img class="map-image" id="metroMapImage" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Delhi%20Metro%20Map%20with%20Phase%204%20Routes%20(Approved%20and%20Proposed).svg" alt="Delhi Metro network route map with colour-coded metro lines and station names" draggable="false"></div>
     <div class="map-controls" aria-label="Map controls">
       <button class="map-control" id="mapZoomIn" type="button" aria-label="Zoom in" title="Zoom in">+</button>
       <button class="map-control" id="mapZoomOut" type="button" aria-label="Zoom out" title="Zoom out">−</button>
@@ -84,7 +84,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
     </div>
     <div class="map-zoom-level" id="mapZoomLevel">100%</div>
   </div>
-  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Map image hosted by YoMetro." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। मानचित्र छवि YoMetro द्वारा होस्ट की गई है।">Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Map image hosted by YoMetro.</p>
+  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Scalable vector SVG map from Wikimedia Commons; zoom remains sharp." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। Wikimedia Commons का स्केलेबल वेक्टर SVG मानचित्र; ज़ूम करने पर स्पष्ट रहता है।">Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Map image hosted by YoMetro.</p>
   <section class="lines" aria-label="Delhi Metro line guide">
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e33b32"></span>Red Line</div><div class="terminals">Rithala ↔ Shaheed Sthal</div></div>
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e5c400"></span>Yellow Line</div><div class="terminals">Samaypur Badli ↔ Millennium City Centre Gurugram</div></div>
@@ -184,7 +184,7 @@ observer.observe(document.body,{childList:true,subtree:true});
  viewer.addEventListener('pointermove',e=>{if(!dragging)return;x=originX+(e.clientX-startX);y=originY+(e.clientY-startY);render();});
  function endDrag(){dragging=false;canvas.classList.remove('dragging');}
  viewer.addEventListener('pointerup',endDrag);viewer.addEventListener('pointercancel',endDrag);
- img.addEventListener('error',()=>{viewer.innerHTML='<p style="padding:24px;text-align:center;color:#697386">The map image could not be loaded. Please check your internet connection or open the official DMRC map.</p>';});
+ img.addEventListener('error',()=>{viewer.innerHTML='<p style="padding:24px;text-align:center;color:#697386">The vector map could not be loaded. Please check your internet connection or open the official DMRC map.</p>';});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.fullscreenElement===viewer)document.exitFullscreen();});
 })();
 </script>
