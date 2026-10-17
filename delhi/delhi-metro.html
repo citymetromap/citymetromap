@@ -563,5 +563,34 @@ const observer=new MutationObserver(()=>{if(document.documentElement.lang==='hi'
 observer.observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+<div id="google_translate_element" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden"></div>
+<script>
+(function(){
+ function googleTranslateElementInit(){
+  if(window.google&&google.translate&&google.translate.TranslateElement){
+   new google.translate.TranslateElement({pageLanguage:'en',includedLanguages:'en,hi',autoDisplay:false},'google_translate_element');
+  }
+ }
+ window.googleTranslateElementInit=googleTranslateElementInit;
+ window.siteTranslateTo=function(lang){
+  var attempts=0;
+  var timer=setInterval(function(){
+   var select=document.querySelector('.goog-te-combo');
+   if(select){
+    select.value=lang;
+    select.dispatchEvent(new Event('change'));
+    clearInterval(timer);
+   } else if(++attempts>40){clearInterval(timer);console.warn('Translation service did not load.');}
+  },250);
+ };
+ document.addEventListener('click',function(e){
+  var btn=e.target.closest('[data-lang]');
+  if(!btn)return;
+  var lang=btn.dataset.lang;
+  if(lang==='hi'||lang==='en')window.siteTranslateTo(lang);
+ });
+})();
+</script>
+<script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
