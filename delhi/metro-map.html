@@ -167,8 +167,8 @@ observer.observe(document.body,{childList:true,subtree:true});
  const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),svg=document.getElementById('metroVectorMap'),level=document.getElementById('mapZoomLevel');
  if(!viewer||!canvas||!svg)return;
  let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
- const minScale=.55,maxScale=6;
- function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';svg.classList.toggle('labels-all',scale>=1.45);}
+ const minScale=.45,maxScale=6;
+ function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';svg.classList.toggle('labels-all',scale>=1.25);}
  function reset(){scale=1;x=0;y=0;render();}
  function zoom(factor,cx,cy){const r=viewer.getBoundingClientRect();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();}
  document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));document.getElementById('mapReset').addEventListener('click',reset);
@@ -194,9 +194,21 @@ observer.observe(document.body,{childList:true,subtree:true});
    const valid=stations.filter(s=>Number.isFinite(+s.latitude)&&Number.isFinite(+s.longitude));
    if(!valid.length)throw new Error('No station coordinates are available.');
    const minLon=Math.min(...valid.map(s=>+s.longitude)),maxLon=Math.max(...valid.map(s=>+s.longitude)),minLat=Math.min(...valid.map(s=>+s.latitude)),maxLat=Math.max(...valid.map(s=>+s.latitude));
-   const pad=100,W=1800,H=1200,usableW=W-pad*2,usableH=H-pad*2;
-   const xFor=s=>pad+(+s.longitude-minLon)/(maxLon-minLon)*usableW;
-   const yFor=s=>H-pad-(+s.latitude-minLat)/(maxLat-minLat)*usableH;
+   // Use a dedicated schematic canvas: compress the geographic aspect ratio, then
+   // reserve more room around the network for readable labels and branch endpoints.
+   const W=1800,H=1200,pad=125,usableW=W-pad*2,usableH=H-pad*2;
+   const rawX=s=>(+s.longitude-minLon)/(maxLon-minLon);
+   const rawY=s=>1-(+s.latitude-minLat)/(maxLat-minLat);
+   // Delhi's real-world east-west span is much wider than the north-south span.
+   // A schematic layout uses a balanced vertical scale rather than literal geography.
+   const xFor=s=>pad+rawX(s)*usableW;
+   const yFor=s=>pad+rawY(s)*usableH;
+   const labelSlots=new Map();
+   function labelOffset(sid){
+    const n=labelSlots.get(String(sid))||0;labelSlots.set(String(sid),n+1);
+    const options=[[9,-8],[9,12],[-9,-8],[-9,12],[0,-15],[0,19],[15,0],[-15,0]];
+    return options[n%options.length];
+   }
    svg.innerHTML='';node('rect',{width:W,height:H,fill:'#fff'});
    const heading=node('text',{x:40,y:48,'font-size':24,'font-weight':700,fill:'#111827',stroke:'none'},svg);heading.textContent='Delhi NCR Metro — Interactive Vector Map';
    const lineLayer=node('g',{},svg),stationLayer=node('g',{},svg);
@@ -238,7 +250,10 @@ observer.observe(document.body,{childList:true,subtree:true});
    valid.forEach(s=>{
     const cx=xFor(s),cy=yFor(s),interchange=(usage.get(String(s.id))||0)>1;
     node('circle',{cx,cy,r:interchange?5:3.2,class:interchange?'metro-interchange':'metro-station-dot',stroke:interchange?'#111827':'#334155'},stationLayer);
-    const t=node('text',{x:cx+9,y:cy-8,'text-anchor':'start',class:'metro-station-label','data-station-label':String(s.id)},stationLayer);t.textContent=s.name;
+    const [dx,dy]=labelOffset(s.id);
+    const t=node('text',{x:cx+dx,y:cy+dy,'text-anchor':dx<0?'end':'start',class:'metro-station-label','data-station-label':String(s.id)},stationLayer);
+    t.textContent=s.name;
+    t.setAttribute('font-size',interchange?'6':'5');
    });
    const note=node('text',{x:40,y:H-25,'font-size':13,fill:'#697386',stroke:'none'},svg);note.textContent='Station names are real SVG text. Schematic route geometry and label spacing are still being refined.';
    reset();
