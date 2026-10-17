@@ -25,13 +25,14 @@ main{width:100%;padding:20px 24px 64px}.hero{padding:0 0 18px;border-bottom:1px 
 footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98a2b3;font-size:11px}
 @media(max-width:760px){header{height:64px}.header-inner{padding:0 12px}.site-logo{width:175px;max-height:48px}.header-actions{gap:6px}.explore-pill{padding:8px 9px}.explore-dropdown{width:190px}.lang-toggle button{padding:7px 8px}main{padding:16px 12px 48px}.map-frame{height:70vh;min-height:500px}.lines{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:420px){.site-logo{width:150px}.explore-pill{gap:5px;padding:7px}.lang-toggle button{padding:6px;font-size:12px}.lines{grid-template-columns:1fr}.map-frame{min-height:440px}}
+.text-brand{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;text-decoration:none;color:#171717;white-space:nowrap;min-width:0}.brand-name{display:flex;align-items:baseline;gap:5px;font-family:Arial,Helvetica,sans-serif;font-size:clamp(23px,3vw,32px);line-height:1;font-weight:800;letter-spacing:-1px}.brand-city{font-weight:400}.brand-metro{font-weight:800}.brand-tagline{font-family:Arial,Helvetica,sans-serif;font-size:clamp(11px,1.45vw,15px);font-weight:600;line-height:1.2;letter-spacing:0;color:#171717}
 </style>
 <link rel="manifest" href="../manifest.json">
 </head>
 <body>
 <header>
   <div class="header-inner">
-    <a class="brand" href="../index.html" aria-label="cityMetroMap home"><img class="site-logo" src="../assets/citymetromap-logo-spaced.svg?v=5" alt="cityMetroMap — Find. Route. Travel."></a>
+    <a class="brand text-brand" href="../index.html" aria-label="cityMetroMap home"><span class="brand-name"><span class="brand-city">city</span><span class="brand-metro">MetroMap</span></span><span class="brand-tagline">Find.Route.Travel</span></a>
     <div class="header-actions">
       <div class="explore-menu">
         <button type="button" class="explore-pill" id="exploreToggle" aria-expanded="false"><span data-en="Explore" data-hi="एक्सप्लोर करें">Explore</span><span aria-hidden="true">▾</span></button>
