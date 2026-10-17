@@ -192,7 +192,7 @@ observer.observe(document.body,{childList:true,subtree:true});
    const minLon=Math.min(...valid.map(s=>+s.longitude)),maxLon=Math.max(...valid.map(s=>+s.longitude)),minLat=Math.min(...valid.map(s=>+s.latitude)),maxLat=Math.max(...valid.map(s=>+s.latitude));
    const W=2400,H=1600,pad=150,xp=s=>pad+(+s.longitude-minLon)/(maxLon-minLon)*(W-pad*2),yp=s=>H-pad-(+s.latitude-minLat)/(maxLat-minLat)*(H-pad*2);
    svg.innerHTML='';el('rect',{width:W,height:H,fill:'#fff'});
-   el('text',{x:70,y:68,'font-size':28,'font-weight':700,fill:'#172033,stroke':'none'},svg).textContent='DELHI NCR METRO NETWORK · दिल्ली NCR मेट्रो नेटवर्क';
+   el('text',{x:70,y:68,'font-size':28,'font-weight':700,fill:'#172033',stroke:'none'},svg).textContent='DELHI NCR METRO NETWORK · दिल्ली NCR मेट्रो नेटवर्क';
    const linesLayer=el('g',{},svg),dots=el('g',{},svg),labels=el('g',{},svg),lineMap=new Map(lines.map(l=>[String(l.id),l])),groups=new Map();
    stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;const k=st.line_id+'|'+d;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(st);});
    const usage=new Map();stops.forEach(st=>{if((st.direction||'forward').toLowerCase().includes('reverse'))return;const sid=String(st.station_id);if(!usage.has(sid))usage.set(sid,new Set());usage.get(sid).add(String(st.line_id));});
