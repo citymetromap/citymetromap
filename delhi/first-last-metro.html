@@ -23,7 +23,7 @@ h1{font-size:clamp(32px,5vw,48px);letter-spacing:-1.7px;line-height:1.08;margin:
 .notice{border:1px solid #dbe5ff;background:var(--blue-soft);padding:14px 16px;border-radius:12px;margin:20px 0;color:#34466e;font-size:13px;line-height:1.6}
 h2{font-size:22px;letter-spacing:-.5px;margin:30px 0 7px}.section-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
 .station-search-panel{border:1px solid var(--line);border-radius:15px;padding:20px;margin-top:18px;background:#fff}
-.station-search-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(220px,1fr);gap:14px;align-items:start}
+.station-search-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
 .form-field label{display:block;font-size:12px;font-weight:750;color:var(--muted);margin-bottom:7px}
 .form-field input,.form-field select{width:100%;height:46px;border:1px solid #d9dee7;border-radius:10px;padding:0 12px;background:white;color:var(--text);font:inherit;outline:none}
 .form-field input:focus,.form-field select:focus{border-color:#9eb5ef;box-shadow:0 0 0 3px var(--blue-soft)}
@@ -56,7 +56,7 @@ footer{border-top:1px solid var(--line);padding:24px;text-align:center;color:#89
 <section class="station-search-panel" aria-label="Station timing search">
 <div class="station-search-grid">
 <div class="form-field station-results"><label for="stationSearch" data-en="Metro station" data-hi="मेट्रो स्टेशन">Metro station</label><input id="stationSearch" type="search" autocomplete="off" placeholder="Type a station name…" data-en-placeholder="Type a station name…" data-hi-placeholder="स्टेशन का नाम लिखें…"><div id="stationSuggestions" class="station-suggestions" role="listbox"></div><div id="stationSearchStatus" class="search-status" aria-live="polite"></div></div>
-<div class="form-field"><label for="travelDay" data-en="Travel day" data-hi="यात्रा का दिन">Travel day</label><select id="travelDay"><option value="weekday" data-en="Monday–Friday" data-hi="सोमवार–शुक्रवार">Monday–Friday</option><option value="saturday" data-en="Saturday" data-hi="शनिवार">Saturday</option><option value="sunday" data-en="Sunday / holiday" data-hi="रविवार / छुट्टी">Sunday / holiday</option></select></div>
+
 </div>
 
 <div id="stationOutput" class="station-output" aria-live="polite"></div>
@@ -75,7 +75,7 @@ footer{border-top:1px solid var(--line);padding:24px;text-align:center;color:#89
 <footer><span data-en="cityMetroMap · Find. Route. Travel." data-hi="cityMetroMap · खोजें। रूट जानें। यात्रा करें।">cityMetroMap · Find. Route. Travel.</span> · <a href="https://delhimetrorail.com/" target="_blank" rel="noopener noreferrer" data-en="Official DMRC website" data-hi="DMRC की आधिकारिक वेबसाइट">Official DMRC website</a></footer>
 <script>
 async function initStationSearch(){
-const input=document.getElementById("stationSearch"),suggestions=document.getElementById("stationSuggestions"),status=document.getElementById("stationSearchStatus"),output=document.getElementById("stationOutput"),daySelect=document.getElementById("travelDay");
+const input=document.getElementById("stationSearch"),suggestions=document.getElementById("stationSuggestions"),status=document.getElementById("stationSearchStatus"),output=document.getElementById("stationOutput");
 const base="https://dygejgqiajsqtmcnbvjz.supabase.co/rest/v1/",key="sb_publishable_MQmkFkUkoF-PoGAETUKzow_yn_vjsRl";
 let stations=[],stops=[],lines=[],timings=[],selected=null;
 const t=(en,hi)=>document.documentElement.lang==="hi"?hi:en;
@@ -100,13 +100,13 @@ for(const {line,sequence,direction} of byLine.values()){
 const seq=Number(sequence),rows=stops.filter(x=>Number(x.line_id)===Number(line.id)&&(x.direction||"unknown")===direction);
 const prev=rows.filter(x=>Number(x.sequence_no)<seq).sort((a,b)=>Number(b.sequence_no)-Number(a.sequence_no))[0],next=rows.filter(x=>Number(x.sequence_no)>seq).sort((a,b)=>Number(a.sequence_no)-Number(b.sequence_no))[0];
 const pn=prev?stations.find(x=>Number(x.id)===Number(prev.station_id))?.name:null,nn=next?stations.find(x=>Number(x.id)===Number(next.station_id))?.name:null;
-const matches=renderedTimingLines.has(Number(line.id))?[]:timings.filter(tm=>Number(tm.station_id)===Number(s.id)&&Number(tm.line_id)===Number(line.id)&&tm.day_type===daySelect.value);
+const matches=renderedTimingLines.has(Number(line.id))?[]:timings.filter(tm=>Number(tm.station_id)===Number(s.id)&&Number(tm.line_id)===Number(line.id)&&tm.day_type==="weekday");
 let timingHtml="";
 if(matches.length){renderedTimingLines.add(Number(line.id));timingHtml=matches.map(tm=>'<div style="border-top:1px solid var(--line);padding:10px 0"><div class="time-row" style="border-top:0;padding:0"><span>'+esc(tm.direction_label||t("Direction","दिशा"))+'</span><strong>'+t("First","पहली")+": "+esc(tm.first_train_time?tm.first_train_time.slice(0,5):"—")+" · "+t("Last","आखिरी")+": "+esc(tm.last_train_time?tm.last_train_time.slice(0,5):"—")+'</strong></div></div>').join("")}
 html+='<div style="margin-top:12px">'+(timingHtml?'<div style="margin-top:8px">'+timingHtml+'</div>':"")+"</div>";
 }
-const day=daySelect.value,dayName=day==="weekday"?t("Monday–Friday","सोमवार–शुक्रवार"):day==="saturday"?t("Saturday","शनिवार"):t("Sunday / national holiday","रविवार / राष्ट्रीय छुट्टी");
-const stationHasTimings=timings.some(tm=>Number(tm.station_id)===Number(s.id)&&tm.day_type===daySelect.value);
+const day="weekday",dayName=t("Monday–Friday","सोमवार–शुक्रवार");
+const stationHasTimings=timings.some(tm=>Number(tm.station_id)===Number(s.id)&&tm.day_type==="weekday");
 output.innerHTML=`${html||'<p class="muted">'+t("No line mapping was found for this station.","इस स्टेशन के लिए लाइन मैपिंग नहीं मिली।")+"</p>"}${stationHasTimings?"":'<div class="timing-unavailable" style="margin-top:16px"><strong>'+t("No station-specific timetable records are available for this station and day yet.","इस स्टेशन और दिन के लिए स्टेशन-विशिष्ट समय-सारणी रिकॉर्ड अभी उपलब्ध नहीं हैं。")+"</strong><br>"+t("Confirm exact times on DMRC’s official service.","DMRC की आधिकारिक सेवा पर सही समय की पुष्टि करें。")+'</div>'}`;
 output.classList.add("show");
 }
@@ -114,7 +114,7 @@ document.addEventListener("site-language-change",()=>{input.placeholder=t("Type 
 input.addEventListener("input",search);
 suggestions.addEventListener("click",e=>{const b=e.target.closest("[data-id]");if(!b)return;const s=stations.find(x=>String(x.id)===b.dataset.id);if(s)render(s)});
 document.addEventListener("click",e=>{if(!e.target.closest(".station-results"))suggestions.classList.remove("show")});
-daySelect.addEventListener("change",()=>{if(selected)render(selected)});
+
 const requests=await Promise.allSettled([get("stations?select=id,name&order=name.asc&limit=1000"),get("line_stops?select=station_id,line_id,sequence_no,direction&order=line_id.asc&limit=2000"),get("metro_lines?select=id,name,color&order=name.asc&limit=100"),get("metro_train_timings?select=station_id,line_id,direction_label,day_type,first_train_time,last_train_time,effective_from,effective_to,is_verified,source_url,source_name&limit=1000")]);
 if(requests[0].status==="fulfilled")stations=requests[0].value;else console.error("Station list request failed:",requests[0].reason);
 if(requests[1].status==="fulfilled")stops=requests[1].value;else console.error("Line stops request failed:",requests[1].reason);
