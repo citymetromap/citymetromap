@@ -47,19 +47,17 @@ footer{border-top:1px solid var(--line);padding:24px;text-align:center;color:#89
 footer a{color:var(--blue);text-decoration:none}
 @media(max-width:700px){.site-logo{width:185px;max-height:48px}.header-inner{padding:0 12px}.header-actions{gap:7px}.city-pill{display:none}main{padding:22px 14px 44px}.news-grid{grid-template-columns:1fr}.news-card{min-height:0;padding:17px}h2{font-size:19px}.sub{font-size:14px}}
 @media(max-width:370px){.site-logo{width:160px}.lang-toggle button{padding:7px 9px}}
+
+.header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}.explore-menu{position:relative}.explore-pill{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font:inherit;border:1px solid var(--line);padding:9px 12px;border-radius:10px;font-size:13px;color:#475467;background:#fff;white-space:nowrap}.explore-dropdown{display:none;position:absolute;right:0;top:calc(100% + 8px);width:190px;padding:4px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(20,30,50,.14);z-index:50}.explore-dropdown.open{display:block}.explore-dropdown a{display:block;padding:10px 7px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text);font-size:13px;white-space:nowrap}.explore-dropdown a:last-child{border-bottom:0}.explore-dropdown a:hover,.explore-dropdown a:focus{background:var(--soft);color:var(--blue)}.lang-toggle{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.lang-toggle button{border:0;background:transparent;padding:8px 10px;border-radius:7px;font-weight:700;font-size:13px;color:var(--muted);white-space:nowrap}.lang-toggle button.active{background:var(--text);color:white}
+@media(max-width:760px){.header-actions{gap:6px}.explore-pill{padding:8px 9px}.explore-dropdown{width:180px}.lang-toggle button{padding:7px 8px}.site-logo{width:145px;max-height:46px}}
+@media(max-width:370px){.site-logo{width:118px}.explore-pill{gap:5px;padding:7px}.lang-toggle button{padding:6px 6px;font-size:12px}.explore-dropdown{right:-35px;width:170px}}
 </style>
 </head>
 <body>
 <header>
   <div class="header-inner">
     <a class="brand" href="../index.html" aria-label="cityMetroMap home"><img class="site-logo" src="../assets/citymetromap-logo.svg" alt="cityMetroMap — Find. Route. Travel."></a>
-    <div class="header-actions">
-      <a class="city-pill" href="delhi-metro.html" data-en="Delhi NCR Metro" data-hi="दिल्ली NCR मेट्रो">Delhi NCR Metro</a>
-      <div class="lang-toggle" role="group" aria-label="Choose language">
-        <button type="button" class="active" data-lang="en" aria-pressed="true">English</button>
-        <button type="button" data-lang="hi" aria-pressed="false">हिन्दी</button>
-      </div>
-    </div>
+    <div class="header-actions"><div class="explore-menu"><button type="button" class="explore-pill" id="exploreToggle" aria-expanded="false"><span data-en="Explore" data-hi="एक्सप्लोर करें">Explore</span><span aria-hidden="true">▾</span></button><nav class="explore-dropdown" id="exploreDropdown" aria-label="Explore links"><a href="delhi-metro.html" data-en="Delhi Metro Map" data-hi="दिल्ली मेट्रो मानचित्र">Delhi Metro Map</a><a href="ticket-fare.html" data-en="Ticket Fare" data-hi="टिकट किराया">Ticket Fare</a><a href="latest-news.html" data-en="Latest News" data-hi="ताज़ा समाचार">Latest News</a><a href="first-last-metro.html" data-en="First and Last Metro" data-hi="पहली और आखिरी मेट्रो">First and Last Metro</a><a href="delhi-metro.html#upcoming" data-en="Upcoming Metro" data-hi="आगामी मेट्रो">Upcoming Metro</a><a href="delhi-metro.html#popular" data-en="Popular Lines" data-hi="लोकप्रिय लाइनें">Popular Lines</a></nav></div><div class="lang-toggle" role="group" aria-label="Choose language"><button type="button" class="active" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="hi" aria-pressed="false">हिन्दी</button></div></div>
   </div>
 </header>
 <main>
@@ -118,17 +116,7 @@ footer a{color:var(--blue);text-decoration:none}
 </main>
 <footer><span data-en="cityMetroMap · Find. Route. Travel." data-hi="cityMetroMap · खोजें। रूट जानें। यात्रा करें।">cityMetroMap · Find. Route. Travel.</span> · <a href="https://delhimetrorail.com/" target="_blank" rel="noopener noreferrer" data-en="Official DMRC website" data-hi="DMRC की आधिकारिक वेबसाइट">Official DMRC website</a></footer>
 <script>
-(function(){
-  const buttons=[...document.querySelectorAll('[data-lang]')];
-  const translatable=[...document.querySelectorAll('[data-en][data-hi]')];
-  function setLanguage(lang){
-    document.documentElement.lang=lang;
-    translatable.forEach(el=>{el.textContent=el.dataset[lang]});
-    buttons.forEach(btn=>{const active=btn.dataset.lang===lang;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});
-    try{document.title=lang==='hi'?'दिल्ली मेट्रो की ताज़ा खबरें | cityMetroMap':'Latest Delhi Metro News & Updates | cityMetroMap'}catch(e){}
-  }
-  buttons.forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));
-})();
+(function(){const buttons=[...document.querySelectorAll('[data-lang]')],translatable=[...document.querySelectorAll('[data-en][data-hi]')],menuButton=document.getElementById('exploreToggle'),menu=document.getElementById('exploreDropdown');function setLanguage(lang){document.documentElement.lang=lang;translatable.forEach(el=>{el.textContent=el.dataset[lang]});document.querySelectorAll('[data-en-placeholder][data-hi-placeholder]').forEach(el=>{el.placeholder=lang==='hi'?el.dataset.hiPlaceholder:el.dataset.enPlaceholder});buttons.forEach(btn=>{const active=btn.dataset.lang===lang;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});document.dispatchEvent(new CustomEvent('site-language-change',{detail:{lang}}))}buttons.forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)));menuButton.addEventListener('click',()=>{const open=menu.classList.toggle('open');menuButton.setAttribute('aria-expanded',String(open))});document.addEventListener('click',e=>{if(!e.target.closest('.explore-menu')){menu.classList.remove('open');menuButton.setAttribute('aria-expanded','false')}});menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{menu.classList.remove('open');menuButton.setAttribute('aria-expanded','false')}))})();
 </script>
 </body>
 </html>
