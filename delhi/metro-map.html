@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Delhi Metro Map — cityMetroMap</title>
+<style>
+:root{--text:#151922;--muted:#697386;--line:#e8ebf0;--soft:#f7f8fa;--blue:#2457d6}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;width:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:#fff}
+header{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;position:sticky;top:0;background:rgba(255,255,255,.97);z-index:20}
+.header-inner{width:100%;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;text-decoration:none}.site-logo{display:block;width:220px;max-height:58px;height:auto;object-fit:contain;object-position:left center}
+.header-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}.explore-menu{position:relative}
+.explore-pill{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font:inherit;border:1px solid var(--line);padding:9px 12px;border-radius:10px;font-size:13px;color:#475467;background:#fff;white-space:nowrap}
+.explore-dropdown{display:none;position:absolute;right:0;top:calc(100% + 8px);width:200px;padding:4px 10px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px rgba(20,30,50,.14);z-index:50}
+.explore-dropdown.open{display:block}.explore-dropdown a{display:block;padding:10px 7px;border-bottom:1px solid var(--line);text-decoration:none;color:var(--text);font-size:13px;white-space:nowrap}.explore-dropdown a:last-child{border-bottom:0}.explore-dropdown a:hover{background:var(--soft);color:var(--blue)}
+.lang-toggle{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.lang-toggle button{border:0;background:transparent;padding:8px 10px;border-radius:7px;font-weight:700;font-size:13px;color:var(--muted);white-space:nowrap}.lang-toggle button.active{background:var(--text);color:#fff}
+main{width:100%;padding:20px 24px 64px}.hero{padding:0 0 18px;border-bottom:1px solid var(--line)}h1{font-size:clamp(32px,5vw,48px);letter-spacing:-1.6px;line-height:1.08;margin:0 0 8px}.sub{color:var(--muted);font-size:15px;margin:0;line-height:1.5}
+.map-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 12px}.map-note{font-size:13px;color:var(--muted);line-height:1.5}.action-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border:1px solid var(--line);border-radius:10px;color:var(--text);background:#fff;text-decoration:none;font-size:13px;font-weight:650}.action-link.primary{background:#151922;color:#fff;border-color:#151922}
+.map-frame{width:100%;height:clamp(560px,78vh,980px);border:1px solid var(--line);border-radius:14px;background:#f7f8fa;display:block}
+.map-caption{font-size:12px;color:var(--muted);margin:10px 2px 0;line-height:1.5}
+.lines{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:24px}.line-card{border:1px solid var(--line);border-radius:11px;padding:13px 14px;min-width:0}.line-name{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700}.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}.terminals{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98a2b3;font-size:11px}
+@media(max-width:760px){header{height:64px}.header-inner{padding:0 12px}.site-logo{width:145px;max-height:46px}.header-actions{gap:6px}.explore-pill{padding:8px 9px}.explore-dropdown{width:190px}.lang-toggle button{padding:7px 8px}main{padding:16px 12px 48px}.map-frame{height:70vh;min-height:500px}.lines{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.site-logo{width:118px}.explore-pill{gap:5px;padding:7px}.lang-toggle button{padding:6px;font-size:12px}.lines{grid-template-columns:1fr}.map-frame{min-height:440px}}
+</style>
+<link rel="manifest" href="../manifest.json">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="brand" href="../index.html" aria-label="cityMetroMap home"><img class="site-logo" src="../assets/citymetromap-logo.svg" alt="cityMetroMap — Find. Route. Travel."></a>
+    <div class="header-actions">
+      <div class="explore-menu">
+        <button type="button" class="explore-pill" id="exploreToggle" aria-expanded="false"><span data-en="Explore" data-hi="एक्सप्लोर करें">Explore</span><span aria-hidden="true">▾</span></button>
+        <nav class="explore-dropdown" id="exploreDropdown" aria-label="Explore links">
+          <a href="delhi-metro.html" data-en="Find Metro Route" data-hi="मेट्रो मार्ग खोजें">Find Metro Route</a>
+          <a href="metro-map.html" data-en="Delhi Metro Map" data-hi="दिल्ली मेट्रो मानचित्र">Delhi Metro Map</a>
+          <a href="ticket-fare.html" data-en="Ticket Fare" data-hi="टिकट किराया">Ticket Fare</a>
+          <a href="latest-news.html" data-en="Latest News" data-hi="ताज़ा समाचार">Latest News</a>
+          <a href="first-last-metro.html" data-en="First and Last Metro" data-hi="पहली और आखिरी मेट्रो">First and Last Metro</a>
+          <a href="delhi-metro.html#upcoming" data-en="Upcoming Metro" data-hi="आगामी मेट्रो">Upcoming Metro</a>
+          <a href="delhi-metro.html#popular" data-en="Popular Lines" data-hi="लोकप्रिय लाइनें">Popular Lines</a>
+        </nav>
+      </div>
+      <div class="lang-toggle" role="group" aria-label="Choose language"><button type="button" class="active" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="hi" aria-pressed="false">हिन्दी</button></div>
+    </div>
+  </div>
+</header>
+<main>
+  <section class="hero">
+    <h1 data-en="Delhi Metro Map" data-hi="दिल्ली मेट्रो मानचित्र">Delhi Metro Map</h1>
+    <p class="sub" data-en="Explore the Delhi NCR metro network, colour-coded lines and interchange stations." data-hi="दिल्ली NCR मेट्रो नेटवर्क, रंगों से दर्शाई गई लाइनों और इंटरचेंज स्टेशनों को देखें।">Explore the Delhi NCR metro network, colour-coded lines and interchange stations.</p>
+  </section>
+  <div class="map-actions">
+    <div class="map-note" data-en="Official DMRC network map · Use the embedded map viewer to zoom and inspect station names." data-hi="DMRC का आधिकारिक नेटवर्क मानचित्र · ज़ूम करके स्टेशन के नाम देखें।">Official DMRC network map · Use the embedded map viewer to zoom and inspect station names.</div>
+    <a class="action-link primary" href="https://delhimetrorail.com/static/media/DMRC-Network-Map-Hindi-English-VA-23032026.00317293.pdf" target="_blank" rel="noopener" data-en="Open / Download Official Map ↗" data-hi="आधिकारिक मानचित्र खोलें / डाउनलोड करें ↗">Open / Download Official Map ↗</a>
+  </div>
+  <iframe class="map-frame" title="Official Delhi Metro network map from DMRC" src="https://delhimetrorail.com/static/media/DMRC-Network-Map-Hindi-English-VA-23032026.00317293.pdf#view=FitH" loading="lazy"></iframe>
+  <p class="map-caption" data-en="Source: Delhi Metro Rail Corporation (DMRC), Network Map Hindi & English, March 2026. The map is hosted by DMRC; if it does not display in your browser, use the Open / Download Official Map link above." data-hi="स्रोत: दिल्ली मेट्रो रेल कॉर्पोरेशन (DMRC), हिंदी और अंग्रेज़ी नेटवर्क मानचित्र, मार्च 2026। मानचित्र DMRC द्वारा होस्ट किया गया है; यदि यह ब्राउज़र में न खुले, तो ऊपर दिया गया लिंक इस्तेमाल करें।">Source: Delhi Metro Rail Corporation (DMRC), Network Map Hindi & English, March 2026. The map is hosted by DMRC; if it does not display in your browser, use the Open / Download Official Map link above.</p>
+  <section class="lines" aria-label="Delhi Metro line guide">
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#e33b32"></span>Red Line</div><div class="terminals">Rithala ↔ Shaheed Sthal</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#e5c400"></span>Yellow Line</div><div class="terminals">Samaypur Badli ↔ Millennium City Centre Gurugram</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#1769d2"></span>Blue Line</div><div class="terminals">Dwarka Sector 21 ↔ Noida Electronic City / Vaishali</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#1c9b59"></span>Green Line</div><div class="terminals">Kirti Nagar / Inderlok ↔ Brig. Hoshiar Singh</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#7a3fb0"></span>Violet Line</div><div class="terminals">Kashmere Gate ↔ Raja Nahar Singh</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#e85a91"></span>Pink Line</div><div class="terminals">Majlis Park ↔ Shiv Vihar</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#a447b9"></span>Magenta Line</div><div class="terminals">Krishna Park Extension ↔ Botanical Garden</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#777b83"></span>Grey Line</div><div class="terminals">Dwarka ↔ Dhansa Bus Stand</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#ef7f27"></span>Airport Express</div><div class="terminals">New Delhi ↔ Yashobhoomi Dwarka Sector 25</div></div>
+    <div class="line-card"><div class="line-name"><span class="dot" style="background:#1f8a9e"></span>Aqua Line (NCR)</div><div class="terminals">Noida Sector 51 ↔ Depot Station</div></div>
+  </section>
+</main>
+<footer>cityMetroMap · Find. Route. Travel.</footer>
+<script>
+const toggle=document.getElementById('exploreToggle'),dropdown=document.getElementById('exploreDropdown');
+toggle.addEventListener('click',()=>{const open=dropdown.classList.toggle('open');toggle.setAttribute('aria-expanded',String(open))});
+document.addEventListener('click',e=>{if(!e.target.closest('.explore-menu')){dropdown.classList.remove('open');toggle.setAttribute('aria-expanded','false')}});
+document.querySelectorAll('[data-lang]').forEach(button=>button.addEventListener('click',()=>{
+ const lang=button.dataset.lang;document.documentElement.lang=lang;
+ document.querySelectorAll('[data-lang]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button))});
+ document.querySelectorAll('[data-en][data-hi]').forEach(el=>{if(!el.dataset.originalEn)el.dataset.originalEn=el.textContent;el.textContent=el.dataset[lang]});
+}));
+</script>
+</body>
+</html>
