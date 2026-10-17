@@ -201,22 +201,40 @@ observer.observe(document.body,{childList:true,subtree:true});
    const heading=node('text',{x:40,y:48,'font-size':24,'font-weight':700,fill:'#111827',stroke:'none'},svg);heading.textContent='Delhi NCR Metro — Interactive Vector Map';
    const lineLayer=node('g',{},svg),stationLayer=node('g',{},svg);
    const lineById=new Map(lines.map(l=>[String(l.id),l]));
+   // Keep each forward route/branch sequence separate. Combining all forward-like
+   // directions into one list incorrectly joins unrelated Phase IV and branch segments.
    const groups=new Map();
-   stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;const key=String(st.line_id);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(st);});
-   for(const [lineId,items] of groups){
+   stops.forEach(st=>{
+    const direction=(st.direction||'forward').toLowerCase();
+    if(direction.includes('reverse'))return;
+    const key=String(st.line_id)+'::'+direction;
+    if(!groups.has(key))groups.set(key,[]);
+    groups.get(key).push(st);
+   });
+   for(const [groupKey,items] of groups){
+    const lineId=groupKey.split('::')[0];
     const line=lineById.get(lineId);if(!line)continue;
     items.sort((a,b)=>(+a.sequence_no)-(+b.sequence_no));
     const seen=new Set(),seq=[];
-    for(const it of items){const s=stationById.get(String(it.station_id));if(!s||seen.has(String(s.id)))continue;seen.add(String(s.id));seq.push(s);}
+    for(const it of items){
+     const s=stationById.get(String(it.station_id));
+     if(!s||seen.has(String(s.id)))continue;
+     seen.add(String(s.id));seq.push(s);
+    }
     if(seq.length<2)continue;
     const d=seq.map((s,i)=>(i?'L':'M')+xFor(s).toFixed(1)+' '+yFor(s).toFixed(1)).join(' ');
     node('path',{d,class:'metro-line-path',stroke:line.color||'#667085'},lineLayer);
-    // label the route endpoints, not every station on top of neighbouring routes
-    const first=seq[0],last=seq[seq.length-1];
-    label(lineLayer,xFor(first),yFor(first)-16,line.name+' · '+first.name,'start').classList.add('major-label');
-    label(lineLayer,xFor(last),yFor(last)-16,last.name,'end').classList.add('major-label');
+    // Endpoint labels are limited to the main forward sequence to reduce clutter.
+    if(items.every(st=>(st.direction||'forward').toLowerCase()==='forward')){
+     const first=seq[0],last=seq[seq.length-1];
+     label(lineLayer,xFor(first),yFor(first)-16,line.name+' · '+first.name,'start').classList.add('major-label');
+     label(lineLayer,xFor(last),yFor(last)-16,last.name,'end').classList.add('major-label');
+    }
    }
-   const usage=new Map();stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;usage.set(String(st.station_id),(usage.get(String(st.station_id))||0)+1);});
+   // Count distinct lines (not duplicate branch/direction records) for interchange styling.
+   const usageSets=new Map();
+   stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;const sid=String(st.station_id);if(!usageSets.has(sid))usageSets.set(sid,new Set());usageSets.get(sid).add(String(st.line_id));});
+   const usage=new Map([...usageSets].map(([sid,set])=>[sid,set.size]));
    valid.forEach(s=>{
     const cx=xFor(s),cy=yFor(s),interchange=(usage.get(String(s.id))||0)>1;
     node('circle',{cx,cy,r:interchange?8:5.5,class:interchange?'metro-interchange':'metro-station-dot',stroke:interchange?'#111827':'#334155'},stationLayer);
