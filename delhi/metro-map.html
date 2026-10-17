@@ -164,103 +164,35 @@ observer.observe(document.body,{childList:true,subtree:true});
 
 <script id="interactive-map-controls">
 (function(){
- const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),svg=document.getElementById('metroVectorMap'),level=document.getElementById('mapZoomLevel');
- if(!viewer||!canvas||!svg)return;
+ const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),art=document.getElementById('metroMapArtwork'),level=document.getElementById('mapZoomLevel');
+ if(!viewer||!canvas||!art)return;
  let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
- const minScale=.18,maxScale=4;
+ const minScale=.12,maxScale=5;
  function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';}
- function reset(){scale=1;x=0;y=0;render();}
- function zoom(factor,cx,cy){const r=viewer.getBoundingClientRect();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();}
- document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));document.getElementById('mapReset').addEventListener('click',reset);
+ function reset(){
+  const w=viewer.clientWidth||1200,h=viewer.clientHeight||650;
+  scale=Math.min(w/3000,h/3000)*.96;
+  x=0;y=0;render();
+ }
+ function zoom(factor,cx,cy){
+  const r=viewer.getBoundingClientRect();
+  cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;
+  const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;
+  x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();
+ }
+ document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));
+ document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));
+ document.getElementById('mapReset').addEventListener('click',reset);
  document.getElementById('mapFullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await viewer.requestFullscreen();else await document.exitFullscreen();}catch(e){}});
  viewer.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.12:.89,e.clientX,e.clientY);},{passive:false});
  viewer.addEventListener('pointerdown',e=>{if(e.target.closest('.map-controls'))return;dragging=true;startX=e.clientX;startY=e.clientY;originX=x;originY=y;canvas.classList.add('dragging');viewer.setPointerCapture(e.pointerId);});
  viewer.addEventListener('pointermove',e=>{if(dragging){x=originX+e.clientX-startX;y=originY+e.clientY-startY;render();}});
- function end(){dragging=false;canvas.classList.remove('dragging');}viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
- /* Supabase route rendering disabled: the map artwork uses a schematic layout with bilingual labels. */
- const URL='https://dygejgqiajsqtmcnbvjz.supabase.co/rest/v1/';
- const KEY='sb_publishable_MQmkFkUkoF-PoGAETUKzow_yn_vjsRl';
- async function get(table,query){const res=await fetch(URL+table+'?'+query,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});if(!res.ok)throw new Error('Could not load '+table+' ('+res.status+')');return res.json();}
- const NS='http://www.w3.org/2000/svg';
- function node(tag,attrs,parent){const n=document.createElementNS(NS,tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,v));(parent||svg).appendChild(n);return n;}
- function label(parent,x,y,text,anchor='middle'){const n=node('text',{x,y,'text-anchor':anchor,class:'metro-station-label'},parent);n.textContent=text;return n;}
- async function draw(){
-  try{
-   const [stations,stops,lines]=await Promise.all([
-    get('stations','select=id,name,latitude,longitude&latitude=not.is.null&longitude=not.is.null&limit=1000'),
-    get('line_stops','select=line_id,station_id,sequence_no,direction&limit=3000'),
-    get('metro_lines','select=id,name,color&limit=100')
-   ]);
-   const stationById=new Map(stations.map(s=>[String(s.id),s]));
-   const valid=stations.filter(s=>Number.isFinite(+s.latitude)&&Number.isFinite(+s.longitude));
-   if(!valid.length)throw new Error('No station coordinates are available.');
-   const minLon=Math.min(...valid.map(s=>+s.longitude)),maxLon=Math.max(...valid.map(s=>+s.longitude)),minLat=Math.min(...valid.map(s=>+s.latitude)),maxLat=Math.max(...valid.map(s=>+s.latitude));
-   // Use a dedicated schematic canvas: compress the geographic aspect ratio, then
-   // reserve more room around the network for readable labels and branch endpoints.
-   const W=1800,H=1200,pad=125,usableW=W-pad*2,usableH=H-pad*2;
-   const rawX=s=>(+s.longitude-minLon)/(maxLon-minLon);
-   const rawY=s=>1-(+s.latitude-minLat)/(maxLat-minLat);
-   // Delhi's real-world east-west span is much wider than the north-south span.
-   // A schematic layout uses a balanced vertical scale rather than literal geography.
-   const xFor=s=>pad+rawX(s)*usableW;
-   const yFor=s=>pad+rawY(s)*usableH;
-   const labelSlots=new Map();
-   function labelOffset(sid){
-    const n=labelSlots.get(String(sid))||0;labelSlots.set(String(sid),n+1);
-    const options=[[9,-8],[9,12],[-9,-8],[-9,12],[0,-15],[0,19],[15,0],[-15,0]];
-    return options[n%options.length];
-   }
-   svg.innerHTML='';node('rect',{width:W,height:H,fill:'#fff'});
-   const heading=node('text',{x:40,y:48,'font-size':24,'font-weight':700,fill:'#111827',stroke:'none'},svg);heading.textContent='Delhi NCR Metro — Interactive Vector Map';
-   const lineLayer=node('g',{},svg),stationLayer=node('g',{},svg);
-   const lineById=new Map(lines.map(l=>[String(l.id),l]));
-   // Keep each forward route/branch sequence separate. Combining all forward-like
-   // directions into one list incorrectly joins unrelated Phase IV and branch segments.
-   const groups=new Map();
-   stops.forEach(st=>{
-    const direction=(st.direction||'forward').toLowerCase();
-    if(direction.includes('reverse'))return;
-    const key=String(st.line_id)+'::'+direction;
-    if(!groups.has(key))groups.set(key,[]);
-    groups.get(key).push(st);
-   });
-   for(const [groupKey,items] of groups){
-    const lineId=groupKey.split('::')[0];
-    const line=lineById.get(lineId);if(!line)continue;
-    items.sort((a,b)=>(+a.sequence_no)-(+b.sequence_no));
-    const seen=new Set(),seq=[];
-    for(const it of items){
-     const s=stationById.get(String(it.station_id));
-     if(!s||seen.has(String(s.id)))continue;
-     seen.add(String(s.id));seq.push(s);
-    }
-    if(seq.length<2)continue;
-    const d=seq.map((s,i)=>(i?'L':'M')+xFor(s).toFixed(1)+' '+yFor(s).toFixed(1)).join(' ');
-    node('path',{d,class:'metro-line-path',stroke:line.color||'#667085'},lineLayer);
-    // Endpoint labels are limited to the main forward sequence to reduce clutter.
-    if(items.every(st=>(st.direction||'forward').toLowerCase()==='forward')){
-     const first=seq[0],last=seq[seq.length-1];
-     label(lineLayer,xFor(first),yFor(first)-16,line.name+' · '+first.name,'start').classList.add('major-label');
-     label(lineLayer,xFor(last),yFor(last)-16,last.name,'end').classList.add('major-label');
-    }
-   }
-   // Count distinct lines (not duplicate branch/direction records) for interchange styling.
-   const usageSets=new Map();
-   stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;const sid=String(st.station_id);if(!usageSets.has(sid))usageSets.set(sid,new Set());usageSets.get(sid).add(String(st.line_id));});
-   const usage=new Map([...usageSets].map(([sid,set])=>[sid,set.size]));
-   valid.forEach(s=>{
-    const cx=xFor(s),cy=yFor(s),interchange=(usage.get(String(s.id))||0)>1;
-    node('circle',{cx,cy,r:interchange?5:3.2,class:interchange?'metro-interchange':'metro-station-dot',stroke:interchange?'#111827':'#334155'},stationLayer);
-    const [dx,dy]=labelOffset(s.id);
-    const t=node('text',{x:cx+dx,y:cy+dy,'text-anchor':dx<0?'end':'start',class:'metro-station-label','data-station-label':String(s.id)},stationLayer);
-    t.textContent=s.name;
-    t.setAttribute('font-size',interchange?'6':'5');
-   });
-   const note=node('text',{x:40,y:H-25,'font-size':13,fill:'#697386',stroke:'none'},svg);note.textContent='Station names are real SVG text. Schematic route geometry and label spacing are still being refined.';
-   reset();
-  }catch(err){svg.innerHTML='';node('rect',{width:1800,height:1200,fill:'#fff'});const t=node('text',{x:900,y:570,'text-anchor':'middle','font-size':24,fill:'#a11'},svg);t.textContent='Could not load metro data. Check Supabase access and station coordinates.';console.error(err);}
- }
- // Artwork is already a bilingual schematic map; do not overlay geographic coordinate routes.
+ function end(){dragging=false;canvas.classList.remove('dragging');}
+ viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
+ art.addEventListener('load',reset);
+ art.addEventListener('error',()=>{art.alt='Map image could not load. Use the official DMRC map link above.';});
+ window.addEventListener('resize',reset);
+ if(art.complete)reset();
 })();
 </script>
 
