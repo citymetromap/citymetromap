@@ -356,13 +356,13 @@ function applyFallbackLanguage(lang){
   if(el.children.length===0 && !el.closest('script,style,noscript,svg') && !el.hasAttribute('data-en') && !el.hasAttribute('data-hi')){
    if(!el.dataset.fallbackEnglish)el.dataset.fallbackEnglish=el.textContent;
    const en=el.dataset.fallbackEnglish.trim();
-   if(translations[en])el.textContent=lang==='hi'?translations[en]:en;
+   if(translations[en]){const target=lang==='hi'?translations[en]:en;if(el.textContent!==target)el.textContent=target;}
   }
  });
  document.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{
   if(!el.dataset.fallbackPlaceholder)el.dataset.fallbackPlaceholder=el.placeholder;
   const en=el.dataset.fallbackPlaceholder;
-  if(translations[en])el.placeholder=lang==='hi'?translations[en]:en;
+  if(translations[en]){const target=lang==='hi'?translations[en]:en;if(el.placeholder!==target)el.placeholder=target;}
  });
 }
 document.addEventListener('site-language-change',e=>applyFallbackLanguage(e.detail.lang));
