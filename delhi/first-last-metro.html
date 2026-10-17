@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>First & Last Metro Timings | cityMetroMap</title>
+<meta name="description" content="Check first and last Delhi Metro train timings by station, direction and day, with direct links to official DMRC information.">
+<style>
+:root{--text:#151922;--muted:#697386;--line:#e8ebf0;--soft:#f7f8fa;--blue:#2457d6;--blue-soft:#eef3ff;--green:#18794e}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--text);background:#fff}body{-webkit-text-size-adjust:100%}a{color:inherit}
+header{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;position:sticky;top:0;background:rgba(255,255,255,.97);z-index:10}
+.header-inner{width:100%;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.brand{display:flex;align-items:center;text-decoration:none;min-width:0}.site-logo{display:block;width:220px;height:auto;max-height:58px;object-fit:contain;object-position:left center}
+.header-actions{display:flex;align-items:center;gap:10px}.pill{border:1px solid var(--line);padding:9px 12px;border-radius:10px;font-size:13px;color:#475467;text-decoration:none;white-space:nowrap;background:#fff}
+.lang-toggle{display:flex;gap:3px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}.lang-toggle button{border:0;background:transparent;padding:8px 11px;border-radius:7px;font-weight:700;font-size:13px;color:var(--muted)}.lang-toggle button.active{background:var(--text);color:white}
+main{padding:28px 24px 64px;width:100%}.back{display:inline-block;text-decoration:none;color:var(--blue);font-size:14px;margin:8px 0 20px}
+.hero{padding:10px 0 24px;border-bottom:1px solid var(--line)}.eyebrow{text-transform:uppercase;letter-spacing:.13em;color:var(--blue);font-size:11px;font-weight:800}
+h1{font-size:clamp(32px,5vw,48px);letter-spacing:-1.7px;line-height:1.08;margin:10px 0}.sub{color:var(--muted);font-size:16px;line-height:1.6;margin:0;max-width:850px}
+.quick-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:22px 0}
+.action-card{display:flex;align-items:flex-start;gap:14px;border:1px solid var(--line);border-radius:14px;padding:19px;text-decoration:none;background:#fff}.action-card:hover{border-color:#b9c9f2;box-shadow:0 6px 20px rgba(20,30,50,.05)}
+.action-icon{flex:0 0 42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--blue-soft);color:var(--blue);font-size:22px;font-weight:800}.action-card strong{display:block;font-size:16px;margin:1px 0 6px}.action-card p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.arrow{display:block;color:var(--blue);font-size:13px;font-weight:750;margin-top:9px}
+.notice{border:1px solid #dbe5ff;background:var(--blue-soft);padding:14px 16px;border-radius:12px;margin:20px 0;color:#34466e;font-size:13px;line-height:1.6}
+h2{font-size:22px;letter-spacing:-.5px;margin:30px 0 7px}.section-sub{color:var(--muted);font-size:14px;line-height:1.6;margin:0}
+.timing-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.timing-card{border:1px solid var(--line);border-radius:13px;padding:17px}.timing-card h3{font-size:16px;margin:0 0 12px}.time-row{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid var(--line);font-size:13px}.time-row span{color:var(--muted)}.time-row strong{white-space:nowrap}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}.step{background:var(--soft);border-radius:12px;padding:16px}.step b{display:block;margin-bottom:7px}.step p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}.num{display:grid;place-items:center;width:27px;height:27px;background:#fff;border:1px solid var(--line);border-radius:50%;font-size:12px;font-weight:800;margin-bottom:10px}
+.source-line{margin-top:22px;color:var(--muted);font-size:12px;line-height:1.6}.source-line a{color:var(--blue)}
+footer{border-top:1px solid var(--line);padding:24px;text-align:center;color:#8993a4;font-size:12px}footer a{color:var(--blue);text-decoration:none}
+@media(max-width:760px){.site-logo{width:185px;max-height:48px}.header-inner{padding:0 12px}.pill{display:none}main{padding:20px 14px 44px}.quick-links{grid-template-columns:1fr}.timing-grid,.steps{grid-template-columns:1fr}.timing-card{padding:15px}.sub{font-size:14px}}
+@media(max-width:370px){.site-logo{width:160px}.lang-toggle button{padding:7px 9px}}
+</style>
+</head>
+<body>
+<header><div class="header-inner">
+<a class="brand" href="../index.html" aria-label="cityMetroMap home"><img class="site-logo" src="../assets/citymetromap-logo.svg" alt="cityMetroMap — Find. Route. Travel."></a>
+<div class="header-actions"><a class="pill" href="delhi-metro.html" data-en="Delhi NCR Metro" data-hi="दिल्ली NCR मेट्रो">Delhi NCR Metro</a><div class="lang-toggle" role="group" aria-label="Choose language"><button type="button" class="active" data-lang="en" aria-pressed="true">English</button><button type="button" data-lang="hi" aria-pressed="false">हिन्दी</button></div></div>
+</div></header>
+<main>
+<a class="back" href="delhi-metro.html" data-en="‹ Back to Delhi Metro" data-hi="‹ दिल्ली मेट्रो पर वापस जाएँ">‹ Back to Delhi Metro</a>
+<section class="hero"><div class="eyebrow" data-en="Delhi NCR · Passenger information" data-hi="दिल्ली NCR · यात्री जानकारी">Delhi NCR · Passenger information</div>
+<h1 data-en="First and Last Metro" data-hi="पहली और आखिरी मेट्रो">First and Last Metro</h1>
+<p class="sub" data-en="Check the first and last train for your station, travel direction and day. Timings can differ by terminal, interchange, line and weekday/weekend schedule." data-hi="अपने स्टेशन, यात्रा की दिशा और दिन के अनुसार पहली और आखिरी ट्रेन का समय देखें। समय टर्मिनल, इंटरचेंज, लाइन और सप्ताह के दिन के अनुसार बदल सकता है।">Check the first and last train for your station, travel direction and day. Timings can differ by terminal, interchange, line and weekday/weekend schedule.</p></section>
+<div class="notice" data-en="For the most accurate, current station-wise timetable, use DMRC’s official First/Last Train Time service. The reference hours below are general planning guidance only—not a guarantee for every station or direction." data-hi="स्टेशन के अनुसार सबसे सटीक और वर्तमान समय-सारणी के लिए DMRC की आधिकारिक पहली/आखिरी ट्रेन सेवा का उपयोग करें। नीचे दिए गए सामान्य समय केवल योजना बनाने के लिए हैं—हर स्टेशन या दिशा के लिए निश्चित समय नहीं।">For the most accurate, current station-wise timetable, use DMRC’s official First/Last Train Time service. The reference hours below are general planning guidance only—not a guarantee for every station or direction.</div>
+<section class="quick-links" aria-label="Official timing tools">
+<a class="action-card" href="https://delhimetrorail.com/" target="_blank" rel="noopener noreferrer"><span class="action-icon">↗</span><span><strong data-en="DMRC official website" data-hi="DMRC की आधिकारिक वेबसाइट">DMRC official website</strong><p data-en="Open the official portal and choose “First/Last Train Time” to check station-wise timings." data-hi="आधिकारिक पोर्टल खोलें और स्टेशन के अनुसार समय देखने के लिए “First/Last Train Time” चुनें।">Open the official portal and choose “First/Last Train Time” to check station-wise timings.</p><span class="arrow" data-en="Open DMRC ↗" data-hi="DMRC खोलें ↗">Open DMRC ↗</span></span></a>
+<a class="action-card" href="https://new.delhimetrorail.com/" target="_blank" rel="noopener noreferrer"><span class="action-icon">⌁</span><span><strong data-en="DMRC journey planner" data-hi="DMRC यात्रा प्लानर">DMRC journey planner</strong><p data-en="Use the official journey planner to check your route and confirm service information before travelling." data-hi="यात्रा से पहले रूट और सेवा की जानकारी की पुष्टि करने के लिए आधिकारिक यात्रा प्लानर का उपयोग करें।">Use the official journey planner to check your route and confirm service information before travelling.</p><span class="arrow" data-en="Open journey planner ↗" data-hi="यात्रा प्लानर खोलें ↗">Open journey planner ↗</span></span></a>
+</section>
+<h2 data-en="General planning guide" data-hi="सामान्य समय-सारणी मार्गदर्शिका">General planning guide</h2>
+<p class="section-sub" data-en="Delhi Metro services generally begin early in the morning and continue until late evening. Exact first and last departures are station- and direction-specific." data-hi="दिल्ली मेट्रो सेवाएँ सामान्यतः सुबह जल्दी शुरू होती हैं और देर शाम तक चलती हैं। पहली और आखिरी ट्रेन का सही समय स्टेशन और दिशा पर निर्भर करता है।">Delhi Metro services generally begin early in the morning and continue until late evening. Exact first and last departures are station- and direction-specific.</p>
+<section class="timing-grid">
+<article class="timing-card"><h3 data-en="Regular weekdays" data-hi="सामान्य कार्यदिवस">Regular weekdays</h3><div class="time-row"><span data-en="Typical service start" data-hi="सेवा शुरू होने का सामान्य समय">Typical service start</span><strong>~5:30–6:00 AM</strong></div><div class="time-row"><span data-en="Typical final departures" data-hi="आखिरी प्रस्थान का सामान्य समय">Typical final departures</span><strong>~11:00–11:30 PM</strong></div></article>
+<article class="timing-card"><h3 data-en="Saturday / Sunday" data-hi="शनिवार / रविवार">Saturday / Sunday</h3><div class="time-row"><span data-en="Timings" data-hi="समय">Timings</span><strong data-en="Check by station" data-hi="स्टेशन के अनुसार देखें">Check by station</strong></div><div class="time-row"><span data-en="First train may differ" data-hi="पहली ट्रेन का समय अलग हो सकता है">First train may differ</span><strong data-en="Verify on DMRC" data-hi="DMRC पर पुष्टि करें">Verify on DMRC</strong></div></article>
+<article class="timing-card"><h3 data-en="Airport Express / extensions" data-hi="एयरपोर्ट एक्सप्रेस / विस्तारित लाइनें">Airport Express / extensions</h3><div class="time-row"><span data-en="Service window" data-hi="सेवा का समय">Service window</span><strong data-en="Line-specific" data-hi="लाइन के अनुसार">Line-specific</strong></div><div class="time-row"><span data-en="Before early travel" data-hi="सुबह जल्दी यात्रा से पहले">Before early travel</span><strong data-en="Confirm schedule" data-hi="समय की पुष्टि करें">Confirm schedule</strong></div></article>
+</section>
+<h2 data-en="How to check your exact train" data-hi="अपनी ट्रेन का सही समय कैसे देखें">How to check your exact train</h2>
+<section class="steps">
+<div class="step"><div class="num">1</div><b data-en="Open DMRC timings" data-hi="DMRC समय-सारणी खोलें">Open DMRC timings</b><p data-en="Use the official DMRC link above and open First/Last Train Time." data-hi="ऊपर दिए गए आधिकारिक DMRC लिंक से First/Last Train Time खोलें।">Use the official DMRC link above and open First/Last Train Time.</p></div>
+<div class="step"><div class="num">2</div><b data-en="Select station and direction" data-hi="स्टेशन और दिशा चुनें">Select station and direction</b><p data-en="Check the correct platform direction and destination terminal." data-hi="सही प्लेटफ़ॉर्म दिशा और गंतव्य टर्मिनल चुनें।">Check the correct platform direction and destination terminal.</p></div>
+<div class="step"><div class="num">3</div><b data-en="Choose the day" data-hi="दिन चुनें">Choose the day</b><p data-en="Check weekday, Saturday or Sunday timings and review any service advisories." data-hi="कार्यदिवस, शनिवार या रविवार का समय देखें और सेवा संबंधी सूचनाएँ भी जाँचें।">कार्यदिवस, शनिवार या रविवार का समय देखें और सेवा संबंधी सूचनाएँ भी जाँचें।</p></div>
+</section>
+<p class="source-line"><span data-en="Official reference:" data-hi="आधिकारिक स्रोत:">Official reference:</span> <a href="https://delhimetrorail.com/pages/en/delhi-metro-revised-last-train-timings" target="_blank" rel="noopener noreferrer" data-en="DMRC revised last-train notices" data-hi="DMRC की संशोधित आखिरी ट्रेन संबंधी सूचनाएँ">DMRC revised last-train notices</a>. <span data-en="Special-event extensions can change the normal last-train schedule; always check the date-specific announcement." data-hi="विशेष आयोजनों के दौरान आखिरी ट्रेन का सामान्य समय बदल सकता है; हमेशा तारीख के अनुसार जारी सूचना देखें।">Special-event extensions can change the normal last-train schedule; always check the date-specific announcement.</span></p>
+</main>
+<footer><span data-en="cityMetroMap · Find. Route. Travel." data-hi="cityMetroMap · खोजें। रूट जानें। यात्रा करें।">cityMetroMap · Find. Route. Travel.</span> · <a href="https://delhimetrorail.com/" target="_blank" rel="noopener noreferrer" data-en="Official DMRC website" data-hi="DMRC की आधिकारिक वेबसाइट">Official DMRC website</a></footer>
+<script>
+(function(){const buttons=[...document.querySelectorAll('[data-lang]')];const translatable=[...document.querySelectorAll('[data-en][data-hi]')];function setLanguage(lang){document.documentElement.lang=lang;translatable.forEach(el=>{el.textContent=el.dataset[lang]});buttons.forEach(btn=>{const active=btn.dataset.lang===lang;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});document.title=lang==='hi'?'पहली और आखिरी मेट्रो का समय | cityMetroMap':'First & Last Metro Timings | cityMetroMap'}buttons.forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)))})();
+</script>
+</body>
+</html>
