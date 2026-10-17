@@ -20,6 +20,20 @@ header{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:
 main{width:100%;padding:20px 24px 64px}.hero{padding:0 0 18px;border-bottom:1px solid var(--line)}h1{font-size:clamp(32px,5vw,48px);letter-spacing:-1.6px;line-height:1.08;margin:0 0 8px}.sub{color:var(--muted);font-size:15px;margin:0;line-height:1.5}
 .map-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 12px}.map-note{font-size:13px;color:var(--muted);line-height:1.5}.action-link{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border:1px solid var(--line);border-radius:10px;color:var(--text);background:#fff;text-decoration:none;font-size:13px;font-weight:650}.action-link.primary{background:#151922;color:#fff;border-color:#151922}
 .map-frame{width:100%;height:clamp(560px,78vh,980px);border:1px solid var(--line);border-radius:14px;background:#f7f8fa;display:block}
+
+/* Interactive metro map viewer */
+.map-viewer{position:relative;width:100%;height:clamp(560px,78vh,980px);overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#fff;isolation:isolate;touch-action:none}
+.map-viewer:fullscreen{height:100vh;width:100vw;border:0;border-radius:0;background:#fff}
+.map-canvas{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;will-change:transform}
+.map-canvas.dragging{cursor:grabbing}
+.map-image{display:block;max-width:none;width:min(100%,1500px);height:auto;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.map-controls{position:absolute;right:14px;top:14px;display:flex;gap:8px;z-index:3}
+.map-control{width:42px;height:42px;border:1px solid #d7dce5;border-radius:10px;background:rgba(255,255,255,.96);color:#151922;font-size:22px;cursor:pointer;box-shadow:0 2px 8px #00000012}
+.map-control:hover{background:#f4f6fa}
+.map-zoom-level{position:absolute;right:14px;bottom:14px;padding:7px 10px;border-radius:8px;background:#151922d9;color:#fff;font-size:12px;z-index:3}
+.map-fullscreen-title{position:absolute;left:16px;top:17px;z-index:2;font-size:13px;font-weight:700;background:#ffffffed;padding:8px 10px;border-radius:8px;pointer-events:none}
+@media(max-width:760px){.map-viewer{height:70vh;min-height:500px}.map-controls{right:9px;top:9px;gap:5px}.map-control{width:38px;height:38px}.map-fullscreen-title{left:9px;top:9px;font-size:11px;max-width:55%}}
+
 .map-caption{font-size:12px;color:var(--muted);margin:10px 2px 0;line-height:1.5}
 .lines{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:24px}.line-card{border:1px solid var(--line);border-radius:11px;padding:13px 14px;min-width:0}.line-name{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700}.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}.terminals{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
 footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98a2b3;font-size:11px}
@@ -59,8 +73,18 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
     <div class="map-note" data-en="Official DMRC interactive map · Zoom and inspect station names in the map viewer." data-hi="DMRC का आधिकारिक इंटरैक्टिव मानचित्र · ज़ूम करके स्टेशन के नाम देखें।">Official DMRC interactive map · Zoom and inspect station names in the map viewer.</div>
     <a class="action-link primary" href="https://delhimetrorail.com/map" target="_blank" rel="noopener" data-en="Open Official DMRC Map ↗" data-hi="आधिकारिक DMRC मानचित्र खोलें ↗">Open Official DMRC Map ↗</a>
   </div>
-  <iframe class="map-frame" title="Official interactive Delhi Metro map from DMRC" src="https://delhimetrorail.com/map#view=FitH" loading="lazy"></iframe>
-  <p class="map-caption" data-en="Source: Delhi Metro Rail Corporation (DMRC). The map is hosted by DMRC; if it does not display in your browser, use the Open Official DMRC Map link above." data-hi="स्रोत: दिल्ली मेट्रो रेल कॉर्पोरेशन (DMRC)। मानचित्र DMRC द्वारा होस्ट किया गया है; यदि यह ब्राउज़र में न खुले, तो ऊपर दिया गया लिंक इस्तेमाल करें।">Source: Delhi Metro Rail Corporation (DMRC). The map is hosted by DMRC; if it does not display in your browser, use the Open Official DMRC Map link above.</p>
+  <div class="map-viewer" id="mapViewer" aria-label="Interactive Delhi Metro route map. Drag to pan and use plus or minus to zoom.">
+    <div class="map-fullscreen-title">Delhi Metro Route Map 2026</div>
+    <div class="map-canvas" id="mapCanvas"><img class="map-image" id="metroMapImage" src="https://yometro.com/images/maps/delhi-metro-route-map.jpg" alt="Delhi Metro network route map with colour-coded metro lines and station names" draggable="false"></div>
+    <div class="map-controls" aria-label="Map controls">
+      <button class="map-control" id="mapZoomIn" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+      <button class="map-control" id="mapZoomOut" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+      <button class="map-control" id="mapReset" type="button" aria-label="Reset map view" title="Reset map">⌖</button>
+      <button class="map-control" id="mapFullscreen" type="button" aria-label="Full screen map" title="Full screen">⛶</button>
+    </div>
+    <div class="map-zoom-level" id="mapZoomLevel">100%</div>
+  </div>
+  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Map image hosted by YoMetro." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। मानचित्र छवि YoMetro द्वारा होस्ट की गई है।">Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Map image hosted by YoMetro.</p>
   <section class="lines" aria-label="Delhi Metro line guide">
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e33b32"></span>Red Line</div><div class="terminals">Rithala ↔ Shaheed Sthal</div></div>
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e5c400"></span>Yellow Line</div><div class="terminals">Samaypur Badli ↔ Millennium City Centre Gurugram</div></div>
@@ -137,5 +161,33 @@ observer.observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script id="interactive-map-controls">
+(function(){
+ const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),img=document.getElementById('metroMapImage'),level=document.getElementById('mapZoomLevel');
+ if(!viewer||!canvas||!img)return;
+ let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
+ const minScale=0.5,maxScale=5;
+ function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';}
+ function reset(){scale=1;x=0;y=0;render();}
+ function zoom(factor,clientX,clientY){
+  const rect=viewer.getBoundingClientRect(),cx=(clientX??(rect.left+rect.width/2))-rect.left,cy=(clientY??(rect.top+rect.height/2))-rect.top;
+  const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;
+  x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();
+ }
+ document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));
+ document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(0.8));
+ document.getElementById('mapReset').addEventListener('click',reset);
+ document.getElementById('mapFullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await viewer.requestFullscreen();else await document.exitFullscreen();}catch(e){console.warn('Fullscreen is not available',e);}});
+ viewer.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.12:0.89,e.clientX,e.clientY);},{passive:false});
+ viewer.addEventListener('pointerdown',e=>{if(e.target.closest('.map-controls'))return;dragging=true;startX=e.clientX;startY=e.clientY;originX=x;originY=y;canvas.classList.add('dragging');viewer.setPointerCapture(e.pointerId);});
+ viewer.addEventListener('pointermove',e=>{if(!dragging)return;x=originX+(e.clientX-startX);y=originY+(e.clientY-startY);render();});
+ function endDrag(){dragging=false;canvas.classList.remove('dragging');}
+ viewer.addEventListener('pointerup',endDrag);viewer.addEventListener('pointercancel',endDrag);
+ img.addEventListener('error',()=>{viewer.innerHTML='<p style="padding:24px;text-align:center;color:#697386">The map image could not be loaded. Please check your internet connection or open the official DMRC map.</p>';});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.fullscreenElement===viewer)document.exitFullscreen();});
+})();
+</script>
+
 </body>
 </html>
