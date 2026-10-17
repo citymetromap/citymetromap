@@ -114,6 +114,7 @@ const day=daySelect.value,dayName=day==="weekday"?t("Monday–Friday","सोम
 output.innerHTML="<h3>"+esc(s.name)+"</h3><div class=\"muted\">"+t("Lines serving this station","इस स्टेशन पर उपलब्ध लाइनें")+": "+byLine.size+" · "+t("Selected day","चुना गया दिन")+": "+dayName+"</div>"+(html||'<p class="muted">'+t("No line mapping was found for this station.","इस स्टेशन के लिए लाइन मैपिंग नहीं मिली।")+"</p>")+'<div class="timing-unavailable" style="margin-top:16px"><strong>'+t("Exact first / last train times are not available in this database yet.","इस डेटाबेस में पहली / आखिरी ट्रेन का सटीक समय अभी उपलब्ध नहीं है।")+"</strong><br>"+t("Confirm this station and the required direction on DMRC’s official timing service. Timings may vary by line and selected day.","DMRC की आधिकारिक समय-सारणी में इस स्टेशन और आवश्यक दिशा की पुष्टि करें। समय लाइन और चुने गए दिन के अनुसार बदल सकता है।")+'</div><a class="official-button" href="https://delhimetrorail.com/" target="_blank" rel="noopener noreferrer">'+t("Check exact timings on DMRC ↗","DMRC पर सटीक समय देखें ↗")+"</a>";
 output.classList.add("show");
 }
+document.addEventListener("site-language-change",()=>{input.placeholder=t("Type a station name…","स्टेशन का नाम लिखें…");status.textContent=stations.length?t(stations.length+" stations loaded. Start typing to search.",stations.length+" स्टेशन लोड हुए। खोजने के लिए नाम लिखें।"):status.textContent;if(selected)render(selected)});
 input.addEventListener("input",search);
 suggestions.addEventListener("click",e=>{const b=e.target.closest("[data-id]");if(!b)return;const s=stations.find(x=>String(x.id)===b.dataset.id);if(s)render(s)});
 document.addEventListener("click",e=>{if(!e.target.closest(".station-results"))suggestions.classList.remove("show")});
@@ -124,7 +125,7 @@ catch(e){status.textContent=t("Could not load station list. Refresh the page and
 }
 initStationSearch();
 
-(function(){const buttons=[...document.querySelectorAll('[data-lang]')];const translatable=[...document.querySelectorAll('[data-en][data-hi]')];function setLanguage(lang){document.documentElement.lang=lang;translatable.forEach(el=>{el.textContent=el.dataset[lang]});buttons.forEach(btn=>{const active=btn.dataset.lang===lang;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});document.title=lang==='hi'?'पहली और आखिरी मेट्रो का समय | cityMetroMap':'First & Last Metro Timings | cityMetroMap'}buttons.forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)))})();
+(function(){const buttons=[...document.querySelectorAll('[data-lang]')];const translatable=[...document.querySelectorAll('[data-en][data-hi]')];function setLanguage(lang){document.documentElement.lang=lang;translatable.forEach(el=>{el.textContent=el.dataset[lang]});buttons.forEach(btn=>{const active=btn.dataset.lang===lang;btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active))});document.title=lang==='hi'?'पहली और आखिरी मेट्रो का समय | cityMetroMap':'First & Last Metro Timings | cityMetroMap';document.dispatchEvent(new CustomEvent('site-language-change',{detail:{lang}}))}buttons.forEach(btn=>btn.addEventListener('click',()=>setLanguage(btn.dataset.lang)))})();
 </script>
 </body>
 </html>
