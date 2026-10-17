@@ -100,7 +100,7 @@ const prev=rows.filter(x=>Number(x.sequence_no)<seq).sort((a,b)=>Number(b.sequen
 const pn=prev?stations.find(x=>Number(x.id)===Number(prev.station_id))?.name:null,nn=next?stations.find(x=>Number(x.id)===Number(next.station_id))?.name:null;
 const matches=renderedTimingLines.has(Number(line.id))?[]:timings.filter(tm=>Number(tm.station_id)===Number(s.id)&&Number(tm.line_id)===Number(line.id)&&tm.day_type==="weekday");
 let timingHtml="";
-if(matches.length){renderedTimingLines.add(Number(line.id));timingHtml=matches.map(tm=>'<div style="border-top:1px solid var(--line);padding:10px 0"><div class="time-row" style="border-top:0;padding:0"><span>'+esc(tm.direction_label||t("Direction","दिशा"))+'</span><strong>'+t("First","पहली")+": "+esc(tm.first_train_time?tm.first_train_time.slice(0,5):"—")+" · "+t("Last","आखिरी")+": "+esc(tm.last_train_time?tm.last_train_time.slice(0,5):"—")+'</strong></div></div>').join("")}
+if(matches.length){renderedTimingLines.add(Number(line.id));timingHtml=matches.map((tm,i)=>'<div style="border-top:'+(i===0?'0':'1px solid var(--line)')+';padding:10px 0"><div class="time-row" style="border-top:0;padding:0"><span>'+esc(tm.direction_label||t("Direction","दिशा"))+'</span><strong>'+t("First","पहली")+": "+esc(tm.first_train_time?tm.first_train_time.slice(0,5):"—")+" · "+t("Last","आखिरी")+": "+esc(tm.last_train_time?tm.last_train_time.slice(0,5):"—")+'</strong></div></div>').join("")}
 html+='<div style="margin-top:12px">'+(timingHtml?'<div style="margin-top:8px">'+timingHtml+'</div>':"")+"</div>";
 }
 const day="weekday",dayName=t("Monday–Friday","सोमवार–शुक्रवार");
