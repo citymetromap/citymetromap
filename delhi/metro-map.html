@@ -26,7 +26,7 @@ main{width:100%;padding:20px 24px 64px}.hero{padding:0 0 18px;border-bottom:1px 
 .map-viewer:fullscreen{height:100vh;width:100vw;border:0;border-radius:0;background:#fff}
 .map-canvas{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;will-change:transform}
 .map-canvas.dragging{cursor:grabbing}
-.map-image{display:block;max-width:none;width:1800px;height:1200px;overflow:visible;pointer-events:none;-webkit-user-drag:none;user-select:none}.map-image text{font-family:Arial,Helvetica,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:1.2px;stroke-linejoin:round}.metro-line-path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:4}.metro-station-dot{fill:#fff;stroke-width:1.5}.metro-station-label{font-size:5px;font-weight:400;fill:#202633;stroke-width:1.2px;display:none}.metro-station-label.major-label{display:inline}.map-image.labels-all .metro-station-label{display:inline;font-size:5px;font-weight:400;stroke-width:1.2px}.metro-interchange{fill:#fff;stroke:#111827;stroke-width:1.5}.map-loading{font-size:26px;fill:#697386;stroke:none}
+.map-image{display:block;max-width:none;width:3000px;height:auto;object-fit:contain;overflow:visible;pointer-events:none;-webkit-user-drag:none;user-select:none}.map-image text{font-family:Arial,Helvetica,sans-serif}.map-loading{font-size:26px;fill:#697386;stroke:none}
 .map-controls{position:absolute;right:14px;top:14px;display:flex;gap:8px;z-index:3}
 .map-control{width:42px;height:42px;border:1px solid #d7dce5;border-radius:10px;background:rgba(255,255,255,.96);color:#151922;font-size:22px;cursor:pointer;box-shadow:0 2px 8px #00000012}
 .map-control:hover{background:#f4f6fa}
@@ -70,12 +70,12 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
     <p class="sub" data-en="Explore the Delhi NCR metro network, colour-coded lines and interchange stations." data-hi="दिल्ली NCR मेट्रो नेटवर्क, रंगों से दर्शाई गई लाइनों और इंटरचेंज स्टेशनों को देखें।">Explore the Delhi NCR metro network, colour-coded lines and interchange stations.</p>
   </section>
   <div class="map-actions">
-    <div class="map-note" data-en="Official DMRC interactive map · Zoom and inspect station names in the map viewer." data-hi="DMRC का आधिकारिक इंटरैक्टिव मानचित्र · ज़ूम करके स्टेशन के नाम देखें।">Official DMRC interactive map · Zoom and inspect station names in the map viewer.</div>
+    <div class="map-note" data-en="Interactive Delhi NCR metro map · Zoom for English and Hindi station names." data-hi="दिल्ली NCR मेट्रो मानचित्र · अंग्रेज़ी और हिंदी स्टेशन नाम देखने के लिए ज़ूम करें।">Official DMRC interactive map · Zoom and inspect station names in the map viewer.</div>
     <a class="action-link primary" href="https://delhimetrorail.com/map" target="_blank" rel="noopener" data-en="Open Official DMRC Map ↗" data-hi="आधिकारिक DMRC मानचित्र खोलें ↗">Open Official DMRC Map ↗</a>
   </div>
   <div class="map-viewer" id="mapViewer" aria-label="Interactive Delhi Metro route map. Drag to pan and use plus or minus to zoom.">
     <div class="map-fullscreen-title">Delhi Metro Route Map 2026</div>
-    <div class="map-canvas" id="mapCanvas"><svg class="map-image" id="metroVectorMap" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1200" role="img" aria-label="Vector Delhi Metro network map with text station labels"><rect width="1800" height="1200" fill="#fff"/><text x="900" y="590" text-anchor="middle" font-size="28" fill="#697386">Loading station and line data…</text></svg></div>
+    <div class="map-canvas" id="mapCanvas"><img class="map-image" id="metroMapArtwork" src="https://yometro.com/images/maps/delhi-metro-route-map.jpg" alt="Delhi NCR metro route map with English and Hindi station names" draggable="false" loading="eager"></div>
     <div class="map-controls" aria-label="Map controls">
       <button class="map-control" id="mapZoomIn" type="button" aria-label="Zoom in" title="Zoom in">+</button>
       <button class="map-control" id="mapZoomOut" type="button" aria-label="Zoom out" title="Zoom out">−</button>
@@ -84,7 +84,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
     </div>
     <div class="map-zoom-level" id="mapZoomLevel">100%</div>
   </div>
-  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Scalable vector SVG map from Wikimedia Commons; zoom remains sharp." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। आपके डेटाबेस से लोड किया गया SVG वेक्टर मानचित्र; स्टेशन नाम ज़ूम करने पर भी स्पष्ट रहते हैं।">Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Native SVG map with thin text and reduced station markers; zoom in to inspect station names.</p>
+  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Scalable vector SVG map from Wikimedia Commons; zoom remains sharp." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। आपके डेटाबेस से लोड किया गया SVG वेक्टर मानचित्र; स्टेशन नाम ज़ूम करने पर भी स्पष्ट रहते हैं।">Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Drag to pan · Use + / − to zoom · Station names are shown in English and Hindi.</p>
   <section class="lines" aria-label="Delhi Metro line guide">
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e33b32"></span>Red Line</div><div class="terminals">Rithala ↔ Shaheed Sthal</div></div>
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e5c400"></span>Yellow Line</div><div class="terminals">Samaypur Badli ↔ Millennium City Centre Gurugram</div></div>
@@ -167,8 +167,8 @@ observer.observe(document.body,{childList:true,subtree:true});
  const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),svg=document.getElementById('metroVectorMap'),level=document.getElementById('mapZoomLevel');
  if(!viewer||!canvas||!svg)return;
  let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
- const minScale=.45,maxScale=6;
- function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';svg.classList.toggle('labels-all',scale>=1.25);}
+ const minScale=.18,maxScale=4;
+ function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';}
  function reset(){scale=1;x=0;y=0;render();}
  function zoom(factor,cx,cy){const r=viewer.getBoundingClientRect();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();}
  document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));document.getElementById('mapReset').addEventListener('click',reset);
@@ -177,6 +177,7 @@ observer.observe(document.body,{childList:true,subtree:true});
  viewer.addEventListener('pointerdown',e=>{if(e.target.closest('.map-controls'))return;dragging=true;startX=e.clientX;startY=e.clientY;originX=x;originY=y;canvas.classList.add('dragging');viewer.setPointerCapture(e.pointerId);});
  viewer.addEventListener('pointermove',e=>{if(dragging){x=originX+e.clientX-startX;y=originY+e.clientY-startY;render();}});
  function end(){dragging=false;canvas.classList.remove('dragging');}viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
+ /* Supabase route rendering disabled: the map artwork uses a schematic layout with bilingual labels. */
  const URL='https://dygejgqiajsqtmcnbvjz.supabase.co/rest/v1/';
  const KEY='sb_publishable_MQmkFkUkoF-PoGAETUKzow_yn_vjsRl';
  async function get(table,query){const res=await fetch(URL+table+'?'+query,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});if(!res.ok)throw new Error('Could not load '+table+' ('+res.status+')');return res.json();}
@@ -259,7 +260,7 @@ observer.observe(document.body,{childList:true,subtree:true});
    reset();
   }catch(err){svg.innerHTML='';node('rect',{width:1800,height:1200,fill:'#fff'});const t=node('text',{x:900,y:570,'text-anchor':'middle','font-size':24,fill:'#a11'},svg);t.textContent='Could not load metro data. Check Supabase access and station coordinates.';console.error(err);}
  }
- draw();
+ // Artwork is already a bilingual schematic map; do not overlay geographic coordinate routes.
 })();
 </script>
 
