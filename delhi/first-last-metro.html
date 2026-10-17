@@ -91,7 +91,7 @@ const base="https://dygejgqiajsqtmcnbvjz.supabase.co/rest/v1/",key="sb_publishab
 let stations=[],stops=[],lines=[],timings=[],selected=null;
 const t=(en,hi)=>document.documentElement.lang==="hi"?hi:en;
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-async function get(path){const r=await fetch(base+path,{headers:{apikey:key,Authorization:"Bearer "+key}});if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}
+async function get(path){const r=await fetch(base+path,{headers:{apikey:key,Authorization:"Bearer "+key},signal:AbortSignal.timeout(12000),cache:"no-store"});if(!r.ok){let detail="";try{detail=await r.text()}catch(_){}throw new Error(path.split("?")[0]+" HTTP "+r.status+(detail?": "+detail.slice(0,180):""))}return r.json()}
 function lineNames(id){return [...new Set(stops.filter(x=>Number(x.station_id)===Number(id)).map(x=>lines.find(y=>Number(y.id)===Number(x.line_id))?.name).filter(Boolean))]}
 function search(){
 const q=input.value.trim().toLocaleLowerCase();if(!q){suggestions.innerHTML="";suggestions.classList.remove("show");return}
@@ -125,8 +125,13 @@ suggestions.addEventListener("click",e=>{const b=e.target.closest("[data-id]");i
 document.addEventListener("click",e=>{if(!e.target.closest(".station-results"))suggestions.classList.remove("show")});
 daySelect.addEventListener("change",()=>{dayButtons.forEach(b=>b.classList.toggle("active",b.dataset.day===daySelect.value));if(selected)render(selected)});
 dayButtons.forEach(b=>b.addEventListener("click",()=>{daySelect.value=b.dataset.day;dayButtons.forEach(x=>x.classList.toggle("active",x===b));if(selected)render(selected)}));
-try{const data=await Promise.all([get("stations?select=id,name&order=name.asc&limit=1000"),get("line_stops?select=station_id,line_id,sequence_no,direction&order=line_id.asc&order=sequence_no.asc&limit=2000"),get("metro_lines?select=id,name,color&order=name.asc&limit=100"),get("metro_train_timings?select=station_id,line_id,direction_label,day_type,first_train_time,last_train_time,effective_from,effective_to,is_verified,source_url,source_name&limit=10000")]);stations=data[0];stops=data[1];lines=data[2];timings=data[3];status.textContent=t(stations.length+" stations loaded. "+timings.length+" timing records available. Some are unverified online sources. Start typing to search.",stations.length+" स्टेशन लोड हुए। "+timings.length+" समय रिकॉर्ड उपलब्ध हैं। कुछ ऑनलाइन स्रोतों से हैं और असत्यापित हैं। खोजने के लिए नाम लिखें।")}
-catch(e){status.textContent=t("Could not load station list. Refresh the page and try again.","स्टेशन सूची लोड नहीं हो सकी। पेज रिफ्रेश करके फिर कोशिश करें।")}
+const requests=await Promise.allSettled([get("stations?select=id,name&order=name.asc&limit=1000"),get("line_stops?select=station_id,line_id,sequence_no,direction&order=line_id.asc&limit=2000"),get("metro_lines?select=id,name,color&order=name.asc&limit=100"),get("metro_train_timings?select=station_id,line_id,direction_label,day_type,first_train_time,last_train_time,effective_from,effective_to,is_verified,source_url,source_name&limit=1000")]);
+if(requests[0].status==="fulfilled")stations=requests[0].value;else console.error("Station list request failed:",requests[0].reason);
+if(requests[1].status==="fulfilled")stops=requests[1].value;else console.error("Line stops request failed:",requests[1].reason);
+if(requests[2].status==="fulfilled")lines=requests[2].value;else console.error("Metro lines request failed:",requests[2].reason);
+if(requests[3].status==="fulfilled")timings=requests[3].value;else console.error("Train timings request failed:",requests[3].reason);
+if(!stations.length){status.textContent=t("Station list could not be loaded. Check your connection and refresh. If this continues, the Supabase Data API may be rejecting the request.","स्टेशन सूची लोड नहीं हो सकी। इंटरनेट कनेक्शन जाँचकर पेज रिफ्रेश करें। समस्या बनी रहे तो Supabase Data API अनुरोध अस्वीकार कर रही हो सकती है।");return}
+status.textContent=t(stations.length+" stations loaded. "+(stops.length?"Line connections loaded. ":"Line connections unavailable. ")+(requests[3].status==="fulfilled"?timings.length+" timing records available.":"Timing data temporarily unavailable.")+" Start typing to search.",stations.length+" स्टेशन लोड हुए। "+(stops.length?"लाइन कनेक्शन लोड हुए। ":"लाइन कनेक्शन उपलब्ध नहीं हैं। ")+(requests[3].status==="fulfilled"?timings.length+" समय रिकॉर्ड उपलब्ध हैं।":"समय डेटा अभी उपलब्ध नहीं है।")+" खोजने के लिए नाम लिखें।");
 }
 initStationSearch();
 
