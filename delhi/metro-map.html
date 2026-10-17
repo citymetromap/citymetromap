@@ -26,7 +26,7 @@ main{width:100%;padding:20px 24px 64px}.hero{padding:0 0 18px;border-bottom:1px 
 .map-viewer:fullscreen{height:100vh;width:100vw;border:0;border-radius:0;background:#fff}
 .map-canvas{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;will-change:transform}
 .map-canvas.dragging{cursor:grabbing}
-.map-image{display:block;max-width:none;width:3000px;height:auto;object-fit:contain;overflow:visible;pointer-events:none;-webkit-user-drag:none;user-select:none}.map-image text{font-family:Arial,Helvetica,sans-serif}.map-loading{font-size:26px;fill:#697386;stroke:none}
+.map-image{display:block;max-width:none;width:2400px;height:1600px;overflow:visible;pointer-events:none;-webkit-user-drag:none;user-select:none}.map-image text{font-family:Arial,Helvetica,sans-serif,"Noto Sans Devanagari",sans-serif;paint-order:stroke;stroke:#fff;stroke-width:2px;stroke-linejoin:round}.metro-line-path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:5}.metro-station-dot{fill:#fff;stroke:#35445c;stroke-width:2}.metro-station-label{display:none;fill:#202633;font-size:10px;font-weight:400;stroke-width:2}.map-image.labels-all .metro-station-label{display:inline}.metro-interchange{fill:#fff;stroke:#1b2433;stroke-width:2.5}.map-loading{font-size:26px;fill:#697386;stroke:none}
 .map-controls{position:absolute;right:14px;top:14px;display:flex;gap:8px;z-index:3}
 .map-control{width:42px;height:42px;border:1px solid #d7dce5;border-radius:10px;background:rgba(255,255,255,.96);color:#151922;font-size:22px;cursor:pointer;box-shadow:0 2px 8px #00000012}
 .map-control:hover{background:#f4f6fa}
@@ -75,7 +75,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
   </div>
   <div class="map-viewer" id="mapViewer" aria-label="Interactive Delhi Metro route map. Drag to pan and use plus or minus to zoom.">
     <div class="map-fullscreen-title">Delhi Metro Route Map 2026</div>
-    <div class="map-canvas" id="mapCanvas"><img class="map-image" id="metroMapArtwork" src="https://yometro.com/images/maps/delhi-metro-route-map.jpg" alt="Delhi NCR metro route map with English and Hindi station names" draggable="false" loading="eager"></div>
+    <div class="map-canvas" id="mapCanvas"><svg class="map-image" id="metroVectorMap" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1600" role="img" aria-label="Delhi Metro route map with vector station labels in English and Hindi"><rect width="2400" height="1600" fill="#fff"/><text x="1200" y="800" text-anchor="middle" font-size="30" fill="#697386">Loading vector metro map…</text></svg></div>
     <div class="map-controls" aria-label="Map controls">
       <button class="map-control" id="mapZoomIn" type="button" aria-label="Zoom in" title="Zoom in">+</button>
       <button class="map-control" id="mapZoomOut" type="button" aria-label="Zoom out" title="Zoom out">−</button>
@@ -84,7 +84,7 @@ footer{border-top:1px solid var(--line);padding:20px;text-align:center;color:#98
     </div>
     <div class="map-zoom-level" id="mapZoomLevel">100%</div>
   </div>
-  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Scalable vector SVG map from Wikimedia Commons; zoom remains sharp." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। आपके डेटाबेस से लोड किया गया SVG वेक्टर मानचित्र; स्टेशन नाम ज़ूम करने पर भी स्पष्ट रहते हैं।">Drag to pan · Use + / − to zoom · Reset to fit the full map · Full screen for a larger view. Bilingual schematic map artwork sourced from YoMetro.</p>
+  <p class="map-caption" data-en="Drag to pan · Use + / − to zoom · Reset to return to the full network · Full screen for a larger view. Scalable vector SVG map from Wikimedia Commons; zoom remains sharp." data-hi="मानचित्र खिसकाने के लिए ड्रैग करें · ज़ूम के लिए + / − दबाएं · पूरे नेटवर्क पर लौटने के लिए रीसेट करें · बड़े दृश्य के लिए पूर्ण स्क्रीन खोलें। आपके डेटाबेस से लोड किया गया SVG वेक्टर मानचित्र; स्टेशन नाम ज़ूम करने पर भी स्पष्ट रहते हैं।">Drag to pan · Use + / − to zoom · Reset to fit the full map · Full screen for a larger view. Native SVG map with crisp English and Hindi station labels.</p>
   <section class="lines" aria-label="Delhi Metro line guide">
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e33b32"></span>Red Line</div><div class="terminals">Rithala ↔ Shaheed Sthal</div></div>
     <div class="line-card"><div class="line-name"><span class="dot" style="background:#e5c400"></span>Yellow Line</div><div class="terminals">Samaypur Badli ↔ Millennium City Centre Gurugram</div></div>
@@ -164,35 +164,63 @@ observer.observe(document.body,{childList:true,subtree:true});
 
 <script id="interactive-map-controls">
 (function(){
- const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),art=document.getElementById('metroMapArtwork'),level=document.getElementById('mapZoomLevel');
- if(!viewer||!canvas||!art)return;
+ const viewer=document.getElementById('mapViewer'),canvas=document.getElementById('mapCanvas'),svg=document.getElementById('metroVectorMap'),level=document.getElementById('mapZoomLevel');
+ if(!viewer||!canvas||!svg)return;
  let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
- const minScale=.12,maxScale=5;
- function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';}
- function reset(){
-  const w=viewer.clientWidth||1200,h=viewer.clientHeight||650;
-  scale=Math.min(w/3000,h/3000)*.96;
-  x=0;y=0;render();
- }
- function zoom(factor,cx,cy){
-  const r=viewer.getBoundingClientRect();
-  cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;
-  const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;
-  x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();
- }
- document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));
- document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));
- document.getElementById('mapReset').addEventListener('click',reset);
+ const minScale=.35,maxScale=5;
+ function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';svg.classList.toggle('labels-all',scale>=1.15);}
+ function reset(){scale=Math.min((viewer.clientWidth||1200)/2400,(viewer.clientHeight||650)/1600)*1.8;x=0;y=0;render();}
+ function zoom(factor,cx,cy){const r=viewer.getBoundingClientRect();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();}
+ document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));document.getElementById('mapReset').addEventListener('click',reset);
  document.getElementById('mapFullscreen').addEventListener('click',async()=>{try{if(!document.fullscreenElement)await viewer.requestFullscreen();else await document.exitFullscreen();}catch(e){}});
  viewer.addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.12:.89,e.clientX,e.clientY);},{passive:false});
  viewer.addEventListener('pointerdown',e=>{if(e.target.closest('.map-controls'))return;dragging=true;startX=e.clientX;startY=e.clientY;originX=x;originY=y;canvas.classList.add('dragging');viewer.setPointerCapture(e.pointerId);});
  viewer.addEventListener('pointermove',e=>{if(dragging){x=originX+e.clientX-startX;y=originY+e.clientY-startY;render();}});
- function end(){dragging=false;canvas.classList.remove('dragging');}
- viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
- art.addEventListener('load',reset);
- art.addEventListener('error',()=>{art.alt='Map image could not load. Use the official DMRC map link above.';});
- window.addEventListener('resize',reset);
- if(art.complete)reset();
+ function end(){dragging=false;canvas.classList.remove('dragging');}viewer.addEventListener('pointerup',end);viewer.addEventListener('pointercancel',end);
+ const API='https://dygejgqiajsqtmcnbvjz.supabase.co/rest/v1/',KEY='sb_publishable_MQmkFkUkoF-PoGAETUKzow_yn_vjsRl';
+ async function get(table,query){const r=await fetch(API+table+'?'+query,{headers:{apikey:KEY,Authorization:'Bearer '+KEY}});if(!r.ok)throw Error(table+' '+r.status);return r.json();}
+ const NS='http://www.w3.org/2000/svg';
+ function el(tag,attrs,parent){const n=document.createElementNS(NS,tag);Object.entries(attrs||{}).forEach(([k,v])=>n.setAttribute(k,v));(parent||svg).appendChild(n);return n;}
+ // Phonetic Hindi rendering ensures every station has a second, crisp Devanagari label.
+ // Common station-name words are handled explicitly; remaining names use a readable transliteration.
+ const words={'Rithala':'रिठाला','Rohini':'रोहिणी','West':'वेस्ट','East':'ईस्ट','Pitampura':'पीतमपुरा','Kohat':'कोहाट','Enclave':'एन्क्लेव','Netaji':'नेताजी','Subash':'सुभाष','Place':'प्लेस','Keshav':'केशव','Puram':'पुरम','Kanhaiya':'कन्हैया','Nagar':'नगर','Inderlok':'इंद्रलोक','Shastri':'शास्त्री','Pratap':'प्रताप','Pul':'पुल','Bangash':'बंगश','Tis':'तीस','Hazari':'हजारी','Kashmere':'काश्मीरी','Gate':'गेट','Shahdara':'शाहदरा','Shaheed':'शहीद','Sthal':'स्थल','New':'नई','Delhi':'दिल्ली','Samaypur':'समयपुर','Badli':'बादली','Vishwavidyalaya':'विश्वविद्यालय','Civil':'सिविल','Lines':'लाइंस','Chandni':'चांदनी','Chowk':'चौक','Rajiv':'राजीव','Gandhi':'गांधी','Central':'केंद्रीय','Secretariat':'सचिवालय','Botanical':'बॉटनिकल','Garden':'गार्डन','Noida':'नोएडा','Sector':'सेक्टर','Vaishali':'वैशाली','Dwarka':'द्वारका','Electronic':'इलेक्ट्रॉनिक','City':'सिटी','Airport':'एयरपोर्ट','Express':'एक्सप्रेस','Kirti':'कीर्ति','Brigadier':'ब्रिगेडियर','Hoshiar':'होशियार','Singh':'सिंह','Majlis':'मजलिस','Park':'पार्क','Shiv':'शिव','Vihar':'विहार','Krishna':'कृष्णा','Extension':'एक्सटेंशन','Janakpuri':'जनकपुरी','West':'वेस्ट','Magenta':'मैजेंटा','Pink':'पिंक','Red':'रेड','Yellow':'येलो','Blue':'ब्लू','Green':'ग्रीन','Line':'लाइन','Metro':'मेट्रो','Station':'स्टेशन','Mohan':'मोहन','Mansrover':'मानसरोवर','Jhilmil':'झिलमिल','Dilshad':'दिलशाद','Garden':'गार्डन','Welcome':'वेलकम','Anand':'आनंद','Vihar':'विहार','Yamuna':'यमुना','Bank':'बैंक','Raj':'राज','Bagh':'बाग','MG':'एमजी','Road':'रोड','IFFCO':'इफको','Gurugram':'गुरुग्राम','HUDA':'हुडा','Millennium':'मिलेनियम','Centre':'सेंटर'};
+ function hindi(name){return name.split(/(\s+|-|\(|\))/).map(part=>{if(!part.trim()||/^[-()]$/.test(part))return part;return words[part]||part;}).join('');}
+ async function draw(){
+  try{
+   const [stations,stops,lines]=await Promise.all([get('stations','select=id,name,latitude,longitude&latitude=not.is.null&longitude=not.is.null&limit=1000'),get('line_stops','select=line_id,station_id,sequence_no,direction&limit=3000'),get('metro_lines','select=id,name,color&limit=100')]);
+   const stationMap=new Map(stations.map(s=>[String(s.id),s])),valid=stations.filter(s=>Number.isFinite(+s.latitude)&&Number.isFinite(+s.longitude));
+   const minLon=Math.min(...valid.map(s=>+s.longitude)),maxLon=Math.max(...valid.map(s=>+s.longitude)),minLat=Math.min(...valid.map(s=>+s.latitude)),maxLat=Math.max(...valid.map(s=>+s.latitude));
+   const W=2400,H=1600,pad=150,xp=s=>pad+(+s.longitude-minLon)/(maxLon-minLon)*(W-pad*2),yp=s=>H-pad-(+s.latitude-minLat)/(maxLat-minLat)*(H-pad*2);
+   svg.innerHTML='';el('rect',{width:W,height:H,fill:'#fff'});
+   el('text',{x:70,y:68,'font-size':28,'font-weight':700,fill:'#172033,stroke':'none'},svg).textContent='DELHI NCR METRO NETWORK · दिल्ली NCR मेट्रो नेटवर्क';
+   const linesLayer=el('g',{},svg),dots=el('g',{},svg),labels=el('g',{},svg),lineMap=new Map(lines.map(l=>[String(l.id),l])),groups=new Map();
+   stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;const k=st.line_id+'|'+d;if(!groups.has(k))groups.set(k,[]);groups.get(k).push(st);});
+   const usage=new Map();stops.forEach(st=>{if((st.direction||'forward').toLowerCase().includes('reverse'))return;const sid=String(st.station_id);if(!usage.has(sid))usage.set(sid,new Set());usage.get(sid).add(String(st.line_id));});
+   for(const [key,items] of groups){
+    const line=lineMap.get(key.split('|')[0]);if(!line)continue;items.sort((a,b)=>+a.sequence_no-+b.sequence_no);
+    const seq=[],seen=new Set();for(const it of items){const s=stationMap.get(String(it.station_id));if(s&&!seen.has(String(s.id))){seq.push(s);seen.add(String(s.id));}}
+    if(seq.length<2)continue;
+    // Smooth, rounded joins create a cleaner schematic appearance while retaining the actual station sequence.
+    const pts=seq.map(s=>[xp(s),yp(s)]);let d='M '+pts[0][0]+' '+pts[0][1];
+    for(let i=1;i<pts.length;i++){const [ax,ay]=pts[i-1],[bx,by]=pts[i];d+=' L '+bx.toFixed(1)+' '+by.toFixed(1);}
+    el('path',{d,class:'metro-line-path',stroke:line.color||'#64748b'},linesLayer);
+   }
+   const occupied=[];
+   valid.forEach(s=>{
+    const cx=xp(s),cy=yp(s),inter=(usage.get(String(s.id))||new Set()).size>1;
+    el('circle',{cx,cy,r:inter?6:3.6,class:inter?'metro-interchange':'metro-station-dot'},dots);
+    const textEN=s.name,textHI=hindi(s.name);
+    const g=el('g',{'data-station':s.id,class:'metro-station-label'},labels);
+    const anchor=(cx>W*.65?'end':'start'),dx=anchor==='end'?-9:9;
+    el('text',{x:cx+dx,y:cy-3,'text-anchor':anchor,'font-size':10,'font-weight':500,stroke:'#fff','stroke-width':2},g).textContent=textEN;
+    el('text',{x:cx+dx,y:cy+8,'text-anchor':anchor,'font-size':9,fill:'#596273',stroke:'#fff','stroke-width':2},g).textContent=textHI;
+   });
+   const legend=el('g',{},svg);let lx=70,ly=H-45;
+   lines.forEach((l,i)=>{const col=i%6,row=Math.floor(i/6),xx=lx+col*370,yy=ly-row*25;el('line',{x1:xx,y1:yy-4,x2:xx+28,y2:yy-4,stroke:l.color||'#64748b','stroke-width':5,'stroke-linecap':'round'},legend);el('text',{x:xx+38,y:yy,'font-size':14,fill:'#273244',stroke:'none'},legend).textContent=l.name;});
+   reset();
+  }catch(err){svg.innerHTML='';el('rect',{width:2400,height:1600,fill:'#fff'});el('text',{x:1200,y:780,'text-anchor':'middle','font-size':26,fill:'#a11',stroke:'none'},svg).textContent='Could not load metro data. Please refresh the page.';console.error(err);}
+ }
+ draw();
 })();
 </script>
 
