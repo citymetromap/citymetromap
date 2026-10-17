@@ -26,7 +26,7 @@ main{width:100%;padding:20px 24px 64px}.hero{padding:0 0 18px;border-bottom:1px 
 .map-viewer:fullscreen{height:100vh;width:100vw;border:0;border-radius:0;background:#fff}
 .map-canvas{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;will-change:transform}
 .map-canvas.dragging{cursor:grabbing}
-.map-image{display:block;max-width:none;width:1800px;height:1200px;overflow:visible;pointer-events:none;-webkit-user-drag:none;user-select:none}.map-image text{font-family:Arial,Helvetica,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}.metro-line-path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:7}.metro-station-dot{fill:#fff;stroke-width:3}.metro-station-label{font-size:14px;font-weight:600;fill:#202633;stroke-width:4px}.metro-interchange{fill:#fff;stroke:#111827;stroke-width:3}.map-loading{font-size:26px;fill:#697386;stroke:none}
+.map-image{display:block;max-width:none;width:1800px;height:1200px;overflow:visible;pointer-events:none;-webkit-user-drag:none;user-select:none}.map-image text{font-family:Arial,Helvetica,sans-serif;paint-order:stroke;stroke:#fff;stroke-width:3px;stroke-linejoin:round}.metro-line-path{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-width:7}.metro-station-dot{fill:#fff;stroke-width:3}.metro-station-label{font-size:12px;font-weight:400;fill:#202633;stroke-width:3px}.metro-station-label{display:none}.metro-station-label.major-label{display:inline}.map-image.labels-all .metro-station-label{display:inline}.map-image.labels-all .metro-station-label{font-size:12px;font-weight:400;stroke-width:3px}.metro-interchange{fill:#fff;stroke:#111827;stroke-width:3}.map-loading{font-size:26px;fill:#697386;stroke:none}
 .map-controls{position:absolute;right:14px;top:14px;display:flex;gap:8px;z-index:3}
 .map-control{width:42px;height:42px;border:1px solid #d7dce5;border-radius:10px;background:rgba(255,255,255,.96);color:#151922;font-size:22px;cursor:pointer;box-shadow:0 2px 8px #00000012}
 .map-control:hover{background:#f4f6fa}
@@ -168,7 +168,7 @@ observer.observe(document.body,{childList:true,subtree:true});
  if(!viewer||!canvas||!svg)return;
  let scale=1,x=0,y=0,dragging=false,startX=0,startY=0,originX=0,originY=0;
  const minScale=.55,maxScale=6;
- function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';}
+ function render(){canvas.style.transform='translate('+x+'px,'+y+'px) scale('+scale+')';level.textContent=Math.round(scale*100)+'%';svg.classList.toggle('labels-all',scale>=1.55);}
  function reset(){scale=1;x=0;y=0;render();}
  function zoom(factor,cx,cy){const r=viewer.getBoundingClientRect();cx=(cx??(r.left+r.width/2))-r.left;cy=(cy??(r.top+r.height/2))-r.top;const next=Math.max(minScale,Math.min(maxScale,scale*factor)),ratio=next/scale;x=cx-(cx-x)*ratio;y=cy-(cy-y)*ratio;scale=next;render();}
  document.getElementById('mapZoomIn').addEventListener('click',()=>zoom(1.25));document.getElementById('mapZoomOut').addEventListener('click',()=>zoom(.8));document.getElementById('mapReset').addEventListener('click',reset);
@@ -213,14 +213,14 @@ observer.observe(document.body,{childList:true,subtree:true});
     node('path',{d,class:'metro-line-path',stroke:line.color||'#667085'},lineLayer);
     // label the route endpoints, not every station on top of neighbouring routes
     const first=seq[0],last=seq[seq.length-1];
-    label(lineLayer,xFor(first),yFor(first)-16,line.name+' · '+first.name,'start');
-    label(lineLayer,xFor(last),yFor(last)-16,last.name,'end');
+    label(lineLayer,xFor(first),yFor(first)-16,line.name+' · '+first.name,'start').classList.add('major-label');
+    label(lineLayer,xFor(last),yFor(last)-16,last.name,'end').classList.add('major-label');
    }
    const usage=new Map();stops.forEach(st=>{const d=(st.direction||'forward').toLowerCase();if(d.includes('reverse'))return;usage.set(String(st.station_id),(usage.get(String(st.station_id))||0)+1);});
    valid.forEach(s=>{
     const cx=xFor(s),cy=yFor(s),interchange=(usage.get(String(s.id))||0)>1;
     node('circle',{cx,cy,r:interchange?8:5.5,class:interchange?'metro-interchange':'metro-station-dot',stroke:interchange?'#111827':'#334155'},stationLayer);
-    const t=node('text',{x:cx+9,y:cy-8,'text-anchor':'start',class:'metro-station-label'},stationLayer);t.textContent=s.name;
+    const t=node('text',{x:cx+9,y:cy-8,'text-anchor':'start',class:'metro-station-label','data-station-label':String(s.id)},stationLayer);t.textContent=s.name;
    });
    const note=node('text',{x:40,y:H-25,'font-size':13,fill:'#697386',stroke:'none'},svg);note.textContent='Station names are real SVG text; use zoom to inspect labels. Line geometry is plotted from database coordinates.';
    reset();
